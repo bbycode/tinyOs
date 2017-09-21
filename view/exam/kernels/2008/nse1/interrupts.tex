@@ -1,0 +1,82 @@
+\section*{Exercice 3 : Interruptions (6 points)}
+
+Le but de cet exercice est de vous faire écrire un driver pour port
+série sur ChicheOS.  L'architecture de la machine est de type x86, et
+le contrôleur série est un Vatican V6942.
+
+\subsection*{Vatican V6942}
+
+Le Vatican V6942 est un UART (Universal Asynchronous Receiver Transmitter).
+Le Vatican V6942 est reli\'e au PIC maitre de mani\`ere \`a pouvoir
+déclencher une IRQ7.
+Le Vatican V6942 contient 3 registres 8 bits accessibles sur le bus de
+controle de notre processeur :
+
+\begin{itemize}
+\item CR (Control Register), accessible \`a l'adresse 0x340 sur le bus
+  de contrôle.
+
+  Il contient 3 bits importants:
+  \begin{itemize}
+  \item TR (Transmitter Ready) bit 0 : Le registre THR est prêt a recevoir un nouvel octet \`a envoyer.
+  \item DR (Data Ready) bit 1 : Le registre RBR contient un octet re\c{u} du port série.
+  \item IE (Interrupt Enable) bit 2 : Active le déclenchement des interruptions.
+  \end{itemize}
+
+\item THR (Transmit Holding Register), accessible \`a l'adresse 0x341
+  sur le bus de contrôle :
+
+  \begin{itemize}
+  \item Les octets écrits dans ce registre sont transmis sur le port série
+        apres un certain délai.
+  \item Le bit TR du registre CR détermine si le dernier octet écrit \`a
+	bien été transmis. (Celui-ci doit etre positionné \`a 1). Il détermine
+	donc également si il est possible de placer un nouvel octet \`a
+	transmettre.
+  \item Le composant l\`eve une interruption si le bit IE de CR est \`a
+	1, et que l'octet écrit dans THR viens d'etre transmis sur le port
+	série.
+  \end{itemize}
+\end{itemize}
+
+\subsection*{API ChicheOS}
+
+\begin{itemize}
+  \item \verb+void outb(short port, char data)+ : Écrit un octet sur le bus de contrôle.
+  \item \verb+char inb(short port)+ : Lis un octet depuis le bus de contrôle.
+  \item \verb+SAVE_CONTEXT()+ : Sauvegarde sur la pile le contexte étendu \`a la suite d'une interruption.
+  \item \verb+RESTORE_CONTEXT()+ : Charge depuis la pile le contexte étendu.
+  \item \verb+void pic_acknlowledge(void)+ : Indique au PIC que l'on \`a pris en charge l'interruption.
+  \item \verb+void pic_unmask(int irq)+ : Masque l'IRQ fourni en paramètre.
+  \item \verb+void idt_set_irq_handler(int irq, void (*handler)(void))+ : Installe un gestionnaire d'interruption dans l'IDT pour l'IRQ fourni en paramètre.
+\end{itemize}
+
+\subsection*{Questions}
+\begin{enumerate}
+\item Écrivez la fonction \verb+void serial_send(char *buff, int size)+
+  pour ChicheOS, sans utiliser les interruptions.
+\item Écrivez la fonctions \verb+void serial_send(char *buff, int size)+
+  pour ChicheOS, en tirant profit des interruptions. De plus,
+  vous fournirez une fonction \verb+void serial_init()+
+  qui initialisera vos structures de données et activera les interruptions.
+
+  Attention : Pour cela, il est possible que vous deviez écrire des fonctions que nous
+  ne vous demandons pas explicitement.
+
+\item Qu'apporte l'utilisation des interruptions dans notre cas ?
+
+\item Sur wikipedia, nous pouvons trouver :
+
+\textit{The 8259 generates spurious interrupts in response to a number of conditions.}
+
+\textit{The first is an IRQ line being deasserted before it is acknowledged. This may occur due to noise on the IRQ lines. In edge triggered mode, the noise must maintain the line in the low state for 100nS. When the noise diminishes, a pull-up resistor returns the IRQ line to high, thus generating a false interrupt. In level triggered mode, the noise may cause a high signal level on the systems INTR line. If the system sends an acknowledgment request, the 8259 has nothing to resolve and thus sends an IRQ7 in response. This first case will generate spurious IRQ7's.}
+
+
+\begin{enumerate}
+\item Expliquez avec vos mots le phénomène des ``spurious interrupts''.
+\item Quelles précautions le noyau doit-il prendre vis a vis des ``spurious interrupts'' ?
+\item Votre code est-il concerné par le problème ?
+\end{enumerate}
+
+\end{enumerate}
+

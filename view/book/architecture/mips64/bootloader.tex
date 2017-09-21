@@ -1,0 +1,27 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/enguerrand/.../book/architecture/mips64/bootloader.tex
+%
+% created       enguerrand raymond   [sun oct  5 16:54:35 2008]
+% updated       enguerrand raymond   [wed may 13 21:09:14 2009]
+%
+
+%
+% booloader
+%
+
+\chapter{Bootloader}
+
+This chapter describes the bootloading phase of kaneton on MIPS 64 systems. Each processor bootstrap are described. For the moment, the kaneton bootloader and the kernel will be loaded at this address. Later a more real firmware will be developed to load from floppy disk the kernel and these modules
+
+\subsection{Bootloader operations}
+
+Schema
+
+
+The microprocessor initalization corresponds to a reset or a soft reset exception, see chapter 5 in \cite{MIPS64:MIPS64V3} for a complete CPU state description after these exceptions occur.

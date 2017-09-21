@@ -1,0 +1,131 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/package/opk/presentation.tex
+%
+% created       julien quintard   [wed may 16 18:17:26 2007]
+% updated       julien quintard   [wed feb 23 15:45:43 2011]
+%
+
+%
+% ---------- packages ---------------------------------------------------------
+%
+
+%
+% packages
+%
+
+\usepackage{pgf,pgfarrows,pgfnodes,pgfautomata,pgfheaps,pgfshade}
+\usepackage[T1]{fontenc}
+\usepackage{colortbl}
+\usepackage{times}
+\usepackage{amsmath,amssymb}
+\usepackage{multicol}
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage[english]{babel}
+\usepackage{enumerate}
+\usepackage[latin1]{inputenc}
+\usepackage{verbatim}
+\usepackage{aeguill}
+
+%
+% ---------- date -------------------------------------------------------------
+%
+
+%
+% date
+%
+
+\date{\scriptsize{\today}}
+
+%
+% ---------- configuration ----------------------------------------------------
+%
+
+%
+% style
+%
+
+\usepackage{beamerthemesplit}
+\setbeamercovered{dynamic}
+
+%
+% table of contents at the beginning of each section
+%
+
+\AtBeginSection[]
+{
+  \begin{frame}<beamer>
+   \frametitle{Outline}
+    \tableofcontents[current]
+  \end{frame}
+}
+
+%
+% table of contents at the beginning of each subsection
+%
+
+\AtBeginSubsection[]
+{
+  \begin{frame}<beamer>
+   \frametitle{Outline}
+    \tableofcontents[current,currentsubsection]
+  \end{frame}
+}
+
+%
+% ---------- commands ---------------------------------------------------------
+%
+
+%
+% -
+%
+
+\renewcommand{\-}{\vspace{0.4cm}}
+
+%
+% note
+%
+% this command is used for making little notes, tips, hints etc.
+%
+% #1:   text
+%
+
+\renewcommand\note[1]
+{
+  \textbf{\color{c_note}Note}
+
+  \begin{tabular}{p{0.2cm}p{13.8cm}}
+  & #1
+  \end{tabular}
+}
+
+%
+% example
+%
+% this command is used for creating examples.
+%
+% #1:   text
+%
+
+\renewcommand\example[1]
+{
+  \textit{Example:}
+
+  \begin{tabular}{p{0.2cm}p{13.8cm}}
+  & {\footnotesize{\texttt{#1}}}
+  \end{tabular}
+}
+
+%
+% ---------- common -----------------------------------------------------------
+%
+
+\input{\path/package/opk/common.tex}

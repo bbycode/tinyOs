@@ -1,0 +1,210 @@
+\section*{Exercice 3 : Pagination (7 points)}
+
+{\bf Rappel :}
+
+Contrairement aux microprocesseurs IA-32 qui fournissent un
+algorithme de remplacement automatique des entrées TLB basé sur un
+arbre (le page-directory et les page-tables), le microprocesseur MIPS
+R3000 n'offre aucune aide au programmeur en cas de TLB-miss.
+
+Lorsque la MMU traduit une adresse et qu'aucune entrée dans les TLB
+ n'est satisfaisante, une exception est d\'eclench\'ee. C'est alors
+au noyau de mettre \`a jour les TLB, ou de déclarer une erreur fatale.
+
+La taille des pages sur le MIPS R3000 est fixée à 4ko.
+
+\begin{description}
+\item {\bf A - Question de cours (1.5 points)}
+\begin{enumerate}
+\item D\'ecrivez en quelques lignes le principe g\'en\'eral de la
+traduction d'adresses en m\'emoire pagin\'ee.
+ Vous d\'etaillerez notamment le fonctionnement interne de la MMU.
+
+\begin{correction}
+
+La pagination consiste à diviser la mémoire physique en zones de
+taille égale nommées pages. Sur certaines architectures, il peut y
+avoir plusieurs tailles de page.
+
+Chaque processus dispose alors d'un ensemble de pages qu'il peut
+adresser, on l'appelle l'espace d'adressage (ou espace d'adressage
+virtuel).
+
+L'unité de gestion de mémoire (MMU) du microprocesseur traduit les
+adresses virtuelles en adresses physiques, en suivant certaines règles
+décrites par le microprocesseur lui même ou par le noyau.
+
+On appelle TLB un cache de traduction d'adresse. Ce cache décrit la
+correspondance d'une page dans la mémoire virtuelle d'un espace
+d'adressage avec une page en mémoire physique. Ce cache est interrogé
+à chaque traduction par la MMU.
+
+\end{correction}
+
+\end{enumerate}
+\end{description}
+
+\begin{description}
+\item {\bf B - Impl\'ementation de la pagination sur MIPS (5.5 points)}\\
+\\
+Dans cet exercice, vous allez impl\'ementer le manager \emph{region} de
+kaneton pour un microprocesseur de la famille MIPS.
+
+\begin{enumerate}
+\item Les TLB contiennent des entrées provenant de tous les espaces
+d'adressages confondus. Pour indiquer à quel espace d'adressage
+une entrée TLB appartient, chaque entr\'ee contient un identifiant
+cod\'e sur 6 bits.\\
+\\
+Allez-vous devoir faire des modifications dans la partie dépendante de
+\emph{as} ?\\
+Si oui, lesquelles ?\\
+
+\begin{correction}
+
+Nous allons devoir attribuer des identifiants sur 6 bits pour chaque
+espace d'adressage. Il faut donc ajouter un champ \emph{id} dans la
+partie dépendante de l'objet \emph{o\_as}.
+
+Cette valeur sera attribuée par le code dépendant de \emph{as\_reserve}.
+
+\end{correction}
+
+\item En quoi le fait d'encoder le champ identifiant sur 6 bits peut-il
+poser problème ?\\
+\textbf{Pour la suite de l'exercice, vous ne devez pas consid\'erer le
+        problème identifié ci-dessus.}\\
+
+\begin{correction}
+
+6 bits permettent 64 valeurs, ce qui implique qu'il ne peut y avoir
+plus de 64 espaces d'adressages (donc 64 tâches) simultanément. Au
+dela, il faut alors user d'astuces pour gérer le TLB.
+
+\end{correction}
+
+\item \'Ecrivez le code du gestionnaire de TLB-miss.\\
+Vous vous appuyerez sur les fonctions de la biblioth\`eque MIPS et de
+l'interface kaneton (voir annexe).\\
+\\
+Voici Le prototype du gestionnaire de TLB-miss :
+
+\begin{description}
+\item {\bf tlb\_miss}({\em i\_as asid})\\
+  \emph{asid} est l'identifiant de l'espace d'adressage dans lequel
+  s'est produite l'erreur.\\
+\end{description}
+
+\begin{correction}
+
+\begin{verbatim}
+void          tlb_miss(i_as asid)
+{
+  o_as*       as;
+  t_iterator  it;
+  t_vaddr     badvaddr = mips_bad_vaddr();
+
+  as_get(asid, &as);
+
+  /* browse all the regions of the address space */
+  set_foreach(as->regions, it)
+  {
+    o_region*    region;
+
+    set_object(as->regions, it, &region);
+
+    /* check if this region matches */
+    if (region->address <= badvaddr &&
+        region->address + region->size > badvaddr)
+    {
+      o_segment*  segment;
+      t_vaddr     vaddr;
+      t_paddr     paddr;
+
+      /* get the segment mapped by the region */
+      segment_get(region->segid, &segment);
+
+      /* compute the virtual address and the physical address */
+      /* to put in the TLB */
+      vaddr = badvaddr & (~PAGESZ);
+      paddr = (badvaddr - vaddr) + region->offset + segment->address;
+
+      /* add the corresponding TLB entry */
+      mips_set_tlb(mips_random_entry(),
+                   as->machine.id, vaddr,
+                   paddr, segment->perms);
+
+      /* resume execution */
+      return;
+    }
+  }
+
+  /* region does not exist SIGSEGV */
+}
+\end{verbatim}
+
+\end{correction}
+
+\item \'Ecrivez le code dépendant de la fonction {\em region\_release}. Vous
+pouvez utiliser les fonctions de l'interface kaneton et celles de la
+bibliothèque MIPS.\\
+
+\begin{correction}
+
+\begin{verbatim}
+t_status       mipsr3000_region_release(i_as asid, i_region regid)
+{
+  o_as*       as;
+  o_region*   region;
+  t_uint32    i;
+
+  as_get(asid, &as);
+  region_get(asid, regid, &region);
+
+  /* loop through the TLB */
+  for (i = 0; i < mips_number_entry(); i++)
+  {
+    t_vaddr     vaddr;
+    t_uint32    id;
+
+    /* get the i-th entry */
+    if (mips_get_tlb(i, &vaddr, &id) == STATUS_OK)
+    {
+      /* check if this entry correspond to a page in the */
+      /* region to be removed */
+      if (as->machine.id == id &&
+          reg->address <= vaddr &&
+          reg->address + region->size > vaddr)
+      {
+        /* delete the entry */
+        mips_del_tlb(i);
+      }
+    }
+  }
+}
+\end{verbatim}
+
+\end{correction}
+
+\end{enumerate}
+
+
+\item {\bf C - Optimisations (bonus)}
+
+\begin{enumerate}
+\item Indiquez pourquoi votre code n'est pas suffisament performant.\\
+  Proposez une (ou plusieurs) solution(s) pour gagner en
+performance.
+
+\begin{correction}
+
+Un parcours de liste est une longue opération. Il faudrait utiliser
+une autre structure de données pour stocker et chercher les regions
+plus rapidement en fonction de l'adresse virtuelle qui a causé
+l'exception.
+
+\end{correction}
+
+\end{enumerate}
+
+\end{description}

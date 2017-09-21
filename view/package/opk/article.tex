@@ -1,0 +1,158 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/package/opk/article.tex
+%
+% created       julien quintard   [wed may 16 18:16:50 2007]
+% updated       julien quintard   [wed may 13 13:18:59 2009]
+%
+
+%
+% ---------- packages ---------------------------------------------------------
+%
+
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{a4wide}
+\usepackage{fancyhdr}
+\usepackage{multicol}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{verbatim}
+\usepackage{ifthen}
+\usepackage[pdftex]{hyperref}
+\usepackage{aeguill}
+
+\usepackage[Lenny]{\path/package/fancy/fncychap}
+
+\pagestyle{fancy}
+
+%
+% ---------- indentation ------------------------------------------------------
+%
+% this command initialises the identiation.
+%
+
+\newcommand{\indentation}
+  {
+    \setlength{\parindent}{0.3cm}
+    \setlength{\parskip}{2ex plus 0.5ex minus 0.2ex}
+    \renewcommand{\-}{\vspace{\parskip}}
+  }
+
+%
+% ---------- logo -------------------------------------------------------------
+%
+% this function displays the kaneton logo.
+%
+
+\newcommand{\logo}
+  {
+    \begin{center}
+      \includegraphics[scale=0.8]{\path/logo/kaneton.pdf}
+    \end{center}
+  }
+
+%
+% ---------- date -------------------------------------------------------------
+%
+
+\date{\scriptsize{\today}}
+
+%
+% ---------- environments -----------------------------------------------------
+%
+
+%
+% version
+%
+
+\newcommand{\version}
+  {
+    \ifthenelse
+        {
+	  \equal{\mode}{private}
+	}
+	{%
+	  \scriptsize{\textit{private version}} \\
+	}
+	{
+	}
+  }
+
+%
+% ---------- configuration ----------------------------------------------------
+%
+
+%
+% hyperref
+%
+
+\hypersetup
+  {
+    colorlinks = true,
+    linkcolor = black
+  }
+
+%
+% ---------- commands ---------------------------------------------------------
+%
+
+%
+% subsubsubsection
+%
+% this weird command is just an easier way of sub-dividing the text, once more.
+%
+% #1:   section name
+%
+
+\newcommand\subsubsubsection[1]
+  {%
+    \textbf{#1}%
+  }
+
+%
+% note
+%
+% this command is used for making little notes, tips, hints etc.
+%
+% #1:   text
+%
+
+\newcommand\note[1]
+{
+  \textbf{\color{c_note}Note}
+
+  \begin{tabular}{p{0.2cm}p{13.8cm}}
+  & #1
+  \end{tabular}
+}
+
+%
+% example
+%
+% this command is used for creating examples.
+%
+% #1:   text
+%
+
+\newcommand\example[1]
+{
+  \textit{Example:}
+
+  \begin{tabular}{p{0.2cm}p{13.8cm}}
+  & {\footnotesize{\texttt{#1}}}
+  \end{tabular}
+}
+
+%
+% ---------- common -----------------------------------------------------------
+%
+
+\input{\path/package/opk/common.tex}

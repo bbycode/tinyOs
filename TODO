@@ -1,0 +1,219 @@
+#
+# ---------- general ----------------------------------------------------------
+#
+
+- chercher les XXX restants et en faire des TODO
+
+- mettre les cours a la con du premier jour sur le wiki.
+
+#
+# ---------- test -------------------------------------------------------------
+#
+
+- tester avec un vrai user car l'export request dans client ne marchera
+  surement pas!
+- ajouter un truc dans la capability ou utilise community: contributors/students
+  pour l'export
+
+- revoir la doc dans development
+
+- XXX dans test/?
+
+- terminer les scripts select.py/file.py et evaluate.py: voire README
+- peut etre revoir les capabilities pour inclure un champ group, student,
+  school, year comme ca on se prendrait moins la tete a les retrouver
+
+- terminer le hook supervisor: ajouter aussi le nombre de soumissions pour la
+  tranche --stage
+- ecrire le hook challenge
+
+#
+# ---------- evaluation -------------------------------------------------------
+#
+
+- faire un super test et en 1 semaine faire une tranche de challenge ou ils
+  doivent optimiser kaneton!
+  -> genre lancer tous les tests a la suite sans rebooter
+- faire une tranche optimisation ou tous les coups sont permis pour optimiser
+  leur implem et tous les soirs on poste les resultats. ca ca pourrait buter
+  quand meme.
+
+#
+# ---------- future -----------------------------------------------------------
+#
+
+- changer tous les types de core en prefixant avec c_ pour core.
+  t_options deviendrait ct_options, m_scheduler, cm_scheduler, i_task, ci_task
+  etc.
+  -> ensuite on definierait l'interface kernel qui elle definierait des
+     aliases: ci_task -> i_task etc.
+
+- malloc double-free qui devrait peter ou peter un warning
+- lors d'un free, verifier que la zone est allouee.
+- page fault dans malloc:
+    int i;
+
+    for (i = 0; i < 1000; i++)
+      {
+        printf("[%u]\n", i);
+
+        i_task t;
+        i_as a;
+
+        assert(task_reserve(TASK_CLASS_KERNEL,
+                            TASK_BEHAVIOUR_KERNEL,
+                            TASK_PRIORITY_KERNEL,
+                            &t) == STATUS_OK);
+
+        assert(as_reserve(t, &a) == STATUS_OK);
+      }
+
+- pour les capabilities: (i) soit un autorise l'attenuation hierarchique,
+  auquel cas, c'est tres flexible mais pas super secure car en donnant une
+  cap a un gars, il peut la refiler a tout le monde (sous-attenuee ou non)
+  (ii) soit on limite a un niveau et en plus on inclue l'id de la tache qui
+  va recevoir la cap pour eviter qu'il ne la refile (juste inclure un id et
+  autoriser l'attenuation peut etre interessant cela dit). -> en incluant
+  l'id on perd en perf car il faut faire un appel par attenuation i.e on ne
+  peut pas attenuer une fois et balancer a 100 mecs.
+
+- terminer d'ecrire les cours (fs, scheduling etc.)
+
+- super test pour departager les gens en fonction de la rapidite -> points
+  bonus => 25/20
+
+- ameliorer la liberation des objets lors d'une erreur:
+  t_status foo()
+  {
+    i_segment i1;
+    i_segment i2;
+
+    if (segment_reserve(&i1) != STATUS_OK)
+      SEGMENT_LEAVE(segment, STATUS_UNKNOWN_ERROR);
+
+    if (segment_reserve(&i2) != STATUS_OK)
+    {
+      segment_release(i1);
+
+      SEGMENT_LEAVE(segment, STATUS_UNKNOWN_ERROR);
+    }
+
+    SEGMENT_LEAVE(segment, STATUS_OK);
+  }
+
+- A 'facade' is the definition of a node's communication interface, basically
+  a RPC interface.
+  The difference with the other RPC systems is that we want the facade
+  generation tool to be able to generate code in different languages being
+  C, C++, D, Python etc. so that the user-land applications can use a native
+  kernel interface instead of relying on a C-wrapper as everybody does.
+  This tool will be used both for generating nodes communication interface but
+  also, as stated before, to generate the kernel interface itself.
+  For instance, user-land applications will therefore be able to access kernel
+  values such as kaneton.SHEDULER_STATE_WAIT etc. the whole in native.
+  Thus, the generation tool will be able to generate code relying extensively
+  on the language features such as packages, namespaces and so forth.
+  Finally, when compiling an application, the build system will find the facade
+  required to retrieve the message definitions, generate the stubs for
+  marshalling the messages and generate and pretty binary, ready to be
+  launched :)
+  An example of this problem is for FUSE. In FUSE's source code, there are
+  several includes but a single one is exported (fuse.h). Should they have
+  decided to export a C++ or Python interface, an equivalent header/module/etc.
+  would have had to be manually implemented though such a file could be
+  automatically generated.
+
+- When the loader starts, it pre-reserved some regions like the DMA zone,
+  the VGA area etc. because these memory areas cannot be used.
+  Therefore, when the kernel is started, a list of such areas is passed
+  and the kernel injects these areas in its managers: segment and region.
+  If we consider the DMA zone, a service specialised in its management
+  should acquire the write on it. These zones have been pre-reserved to
+  prevent a unauthorised task from reserving it.
+  However, how could the kernel knows whether the calling client is the
+  one of supposed to take care of the DMA zone. For that, the kernel
+  should be started with a configuration file specifying the relations
+  between tasks and protected objects such as special memory regions, IRQ
+  lines etc.
+  The configuration file syntax must be designed and implemented so that
+  the mod service retrieves this file (which should already be the case
+  actually).
+  Even better would be to define a layout descriptive file, specifying the
+  machine specific components such as memory areas, IRQs etc. Then, the
+  configuration file would like those components to tasks.
+- The kaneton object should provide some acccessors so that user-land
+  applications can read/write attributes.
+  For example: segment_set(o, ATTRIBUTE_PERMISSIONS, PERM_READ) would set
+  the permissions to read-only while segment_get(o, ATTRIBUTE_PERMISSIONS)
+  would return the current permissions.
+  Since the manager generally have a get() function to retrieve an object
+  according to its identifier, the get() function should be renamed in
+  retrieve().
+- developper message et capability managers.
+- revoir l'outil configure
+
+#
+# ---------- library ----------------------------------------------------------
+#
+
+- tout clean, re-arranger le code, le commenter, utiliser le prefixe de
+  type l_ etc.
+
+#
+# ---------- lectures ---------------------------------------------------------
+#
+
+- IPC/virtualization lectures do not compile.
+- file system lecture to complete
+- The boot lecture should contain a section about the kaneton boot system
+  including the pre-reserved memory area, init structure, segments and regions
+  structure but also the mod. For more information, refer to the IA32 Book
+  or contact Julien Quintard.
+- The portability lecture should be improved a bit by including more details
+  regarding the kaneton portability system as well as a comparison with other
+  systems such as Linux, BSD etc.
+- generalities: Some scenarios could be given to illustrate the differences
+  between the kernel models especially when it comes to crashes for
+  microkernels or calls for exokernels etc. Besides, relying on scenarios
+  would make the lecture more attractive and prevent it to look like a bare
+  listing of the different kernel types. Finally, a section could be focusing
+  on embedded and real-time kernels to briefly describe their specificities.
+- interrupts: Some figures are missing and corrections need to be applied,
+  especially regarding the last section: Hardware.
+- scheduling: a voir ce qui pourrait etre ameliore
+- boot: a voir ce qui pourrait etre ameliore
+
+#
+# ---------- cheat ------------------------------------------------------------
+#
+
+- The cheat system outputs wrong matches like this one between
+  core/scheduler/scheduler.c (EPITA::2009::group6) and
+  machine/architecture/ia32/context.c (EPITA::209::group2).
+  The cheat system has not removed the code for the group6 and this is correct
+  because the section is part of the machine but the students included it in
+  the core.
+  However, this section should have been removed from the snapshot before
+  comparing for the group2 since this section has been provided in the base
+  student snapshot.
+
+#
+# ---------- book -------------------------------------------------------------
+#
+
+- The core book must be written. This book should contain everything related
+  to the machine-independent part of the kaneton microkernel. Additionally,
+  note that the Assignments book should not then contain any function or
+  manager description but basically just references to the Core book.
+- The IA32 Book must be updated, taking care of: Updating the old parts such
+  as the bootloader, especially the memory organisation at the bootloader time
+  Distinguishing the different branches: educational, optimised etc. Using the
+  LaTeX \details() function for including additional information relative to
+  the implementation. Such information will not be available to the public but
+  only to the kaneton contributors. Writers should rely extensively on this
+  function for specifying implementation details, design choices etc.
+  Distinguishing the platforms. Indeed, the book should contain a Plateforms
+  chapter with a section per architecture/platform couple on which kaneton has
+  been ported.
+  This book is crucial because without it, students spend most of their time
+  trying to understand what a function does.

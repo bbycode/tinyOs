@@ -1,0 +1,225 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/book/assignments/snapshot.tex
+%
+% created       julien quintard   [fri may 23 21:47:38 2008]
+% updated       julien quintard   [mon apr 11 19:45:41 2011]
+%
+
+%
+% ---------- snapshot ---------------------------------------------------------
+%
+
+\chapter{Snapshot}
+\label{chapter:snapshot}
+
+This chapter introduces the snapshot which provides students everything
+necessary for starting the development of the \name{kaneton} microkernel.
+
+\newpage
+
+%
+% ---------- text -------------------------------------------------------------
+%
+
+Although \name{k0} is a standalone project, the following stages, namely,
+\name{k1}, \name{k2} and \name{k3} take place within the microkernel snapshot.
+In addition, students require the educational snapshot in order to submit
+their implementation. Thus, the student should download the educational
+snapshot from the kaneton website \location{http://kaneton.opaak.org}. Once
+downloaded, students should read the dedicated article on the \name{Opaak}
+\name{Wiki} and follow the steps in order to configure their kaneton
+environment.
+
+Note that in order for both the testing and submission processes to work
+properly, students must comply with the following rules:
+
+\begin{itemize}
+  \item
+    The test and submission procedures rely on a mechanism which essentially
+    consists in archiving the whole kaneton development directoy, cleaning it
+    from the object files and versoning directories such as \location{.svn/},
+    \location{.git/} \etc{} before compressing it and sending it to the server.
+
+    \-
+
+    Once on the server, the snapshot is installed on a small disk image and
+    passed to a specific virtual machine whose purpose is to compile the
+    kaneton microkernel, generating a bootable image. Thus, the snapshot
+    provided to the server should be small enough, around $400$KB, in order
+    to fit on the disk image.
+
+    \-
+
+    Students must therefore make sure to avoid placing needless data in
+    the development directory such as architecture manuals, copies of
+    the whole source code etc. Students can check the snapshot size of their
+    current development environment through the following command:
+
+    \begin{verbatim}
+      $> cd kaneton/export/
+      $kaneton/export> make export-test:group
+      [...]
+      $kaneton/export> ls -l output/
+      total 404K
+      -rw------- 1 mycure mycure 398K Mar  7 13:40 test:group.tar.bz2
+      $kaneton/export>
+    \end{verbatim}
+
+    In this example, the snapshot has a size of $398$KB. Note that every
+    snapshot exceeding the size of $5$MB will for sure generate an error
+    once tested or evaluted.
+  \item
+    The \name{test} user profile located in
+    \location{environment/profile/user/} should never be removed as
+    it is used by the testing and evaluation procedures.
+  \item
+    The test and submission systems rely on \name{Python}---more precisely
+    has been developed with \name{Python 2.6}---and thus requires packages
+    which students must install, including \name{yaml}, \name{hmac},
+    \name{pickle} and \name{xmlrpc}.
+\end{itemize}
+
+Finally, note that a test capability must first be acquired in order to be
+able to use the test and evaluation system. The following assumes that
+students possess such a capability. If not, he or he should contact the
+kaneton contributors by email at:
+
+\begin{center}
+  \location{admin@opaak.org}
+\end{center}
+
+%
+% test
+%
+
+\section{Test}
+
+The kaneton test system enables students to test their implementation against
+a set of test suites. However, the number of test suites students are allowed
+to request is limited. As such, the kaneton test system should be seen more as
+a validation system. Students are therefore invited to implement their own
+test suite in order to thorougly test their kaneton implementation.
+
+The following command shows how to retrieve information regarding the
+student test profile.
+
+\begin{verbatim}
+  $> cd test/client/
+  $test/client> make information
+  [+] configuration:
+  [+]   server:                 https://test.opaak.org:8421
+  [+]   capability:             /home/chiche/kaneton/environment/profile/user/chiche/chiche.cap
+  [+]   platform:               ibm-pc
+  [+]   architecture:           ia32/educational
+
+  [+] information:
+  [+]   profile:
+  [+]     attributes:
+  [+]     identifier:           chiche
+  [+]     type:                 student
+  [+]     members:
+  [+]       name:               Florent Chichery
+  [+]       email:              chiche@epita.fr
+  [+]   suites:
+  [+]     k3:                   This test suite contains tests related to the execution.
+  [+]     k2:                   This test suite focuses on the memory management.
+  [+]     k1:                   This test suite focuses on the event processing.
+  [+]   stages:
+  [+]     k3:                   This stage evaluates the kaneton's execution functionalities.
+  [+]     k2:                   This stage evaluates the kaneton's memory management.
+  [+]     k1:                   This stage evaluates the kaneton's event procesing capabilities.
+  [+]   environments:
+  [+]     xen:                  The 'xen' environment is used to thoroughly test a kaneton implementation in a Xen hardware-assisted virtual machine.
+  [+]     qemu:                 The 'qemu' environment is used to test a kaneton implementation through the QEMU processor emulator.
+  [+]   database:
+  [+]     reports:
+  [+]       xen:
+  [+]         ibm-pc.ia32/educational:
+  [+]           k3:
+  [+]                           20110206:113544
+  [+]                           20110206:114823
+  [+]           k2:
+  [+]                           20110205:222312
+  [+]           k1:
+  [+]                           20110205:211847
+  [+]                           20110205:213502
+  [+]                           20110205:214408
+  [+]     quotas:
+  [+]       xen:
+  [+]         ibm-pc.ia32/educational:
+  [+]           k3:             3
+  [+]           k2:             3
+  [+]           k1:             3
+  [+]   deliveries:
+  [+]     k1:                   None
+  [+]     k2:                   None
+  [+]     k3:                   None
+  $test/client>
+\end{verbatim}
+
+Finally, the following command illustrates a student triggering a test
+suite on the \name{Xen} environment.
+
+\begin{verbatim}
+  $test/client> make test-xen::k1
+  [+] configuration:
+  [+]   server:                 https://test.opaak.org:8421
+  [+]   capability:             /home/chiche/kaneton/environment/profile/user/chiche/chiche.cap
+  [+]   platform:               ibm-pc
+  [+]   architecture:           ia32/educational
+
+  [+] generating the kaneton snapshot
+  [+] loading the kaneton snapshot
+  [+] requesting the server
+  [+] the snapshot has been scheduled for testing under the identifier: 20110208:175055
+  $test/client>
+\end{verbatim}
+
+Once the testing complete, the student will receive an email containing
+a detailed report.
+
+%
+% submission
+%
+
+\section{Submission}
+
+In order to submit an implementation for evaluation, the student simply
+has to issue the \name{submit} command, as shown below.
+
+\begin{verbatim}
+  $test/client> make submit-k2
+  [+] configuration:
+  [+]   server:                 https://test.opaak.org:8421
+  [+]   capability:             /home/chiche/kaneton/environment/profile/user/chiche/chiche.cap
+  [+]   platform:               ibm-pc
+  [+]   architecture:           ia32/educational
+
+  [+] generating the kaneton snapshot
+  [+] loading the kaneton snapshot
+  [+] requesting the server
+  [+] the snapshot has been submitted successfully
+  $test/client>
+\end{verbatim}
+
+Note that any submitted snapshot must comply with the rules related to the
+testing procedure since the evaluation process is essentially the same.
+
+%
+% cheating
+%
+
+\section{Cheating}
+
+Students should already be familiar with the fact that cheating is
+strictly prohibited. As such, should the implementation of a function,
+an algorithm or even a test look too similar to another student's, the
+teachers will be forced to take measures ranging from a $-42$ grade for
+the current stage to the definitive exclusion of the student from the
+project.

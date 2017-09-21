@@ -1,0 +1,59 @@
+\section*{Exercice 2 : Gestionnaire d'interruption (3 points)}
+
+{\bf C\^ot\'e noyau}
+
+Le code suivant est inspir\'e du handler d'exceptions par d\'efaut de Linux 1.0 IA32, mais plusieurs erreurs ont \'et\'e introduites.
+
+\begin{enumerate}
+\item Corrigez le handler pour que Linux 1.0 ne plante plus lors du d\'eclenchement d'une exception. Vous ne vous soucierez pas des probl\`emes li\'es \`a la s\'ecurit\'e.
+\begin{itemize}
+\item Aucun autre registre que ceux qui apparaissent dans ce code ne sera utilis\'e pendant le traitement du handler.
+\item Ce handler ne traite que les exceptions qui fournissent un code d'erreur.
+\item Le code assembleur est \'ecrit en syntax gas (source,destination)
+\end{itemize}
+
+\item Quelle autre pr\'ecaution faut-il g\'en\'eralement prendre pour rendre un handler plus s\^ur ?
+
+\item Dans les handlers d'exceptions sous Linux IA32, faut-il sauvegarder, modifier et restaurer le registre {\em CR3} ? Pourquoi ?
+\end{enumerate}
+
+
+
+\begin{verbatim}
+/* This is the default interrupt ``handler'' :-) */
+
+int_msg:
+        .asciz ``Unknown interrupt\n''
+
+.align 2
+ignore_int:
+        popl %eax      ; depile le code d'erreur
+
+        cld            ; ne pas prendre en compte cette instruction
+        pushl %eax
+        pushl %ecx
+        pushl %edx
+        push %ds
+        push %es
+        push %fs
+
+        movl $(KERNEL_CS),%eax
+        mov %ax,%ds
+        mov %ax,%es
+        mov %ax,%fs
+
+        pushl $int_msg
+        call _printk
+
+        pop %fs
+        pop %es
+        pop %ds
+        popl %edx
+        popl %ecx
+        popl %eax
+        ret
+\end{verbatim}
+
+
+
+

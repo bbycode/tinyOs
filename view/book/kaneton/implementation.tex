@@ -1,0 +1,144 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/book/kaneton/implementation.tex
+%
+% created       julien quintard   [mon dec 17 12:05:06 2007]
+% updated       julien quintard   [thu may 14 16:34:18 2009]
+%
+
+%
+% ---------- implementation ---------------------------------------------------
+%
+
+\chapter{Implementation}
+\label{chapter:implementation}
+
+This chapter specifies some general rules enabling the reader to explore
+the kaneton implementation without any difficulty.
+
+\newpage
+
+%
+% ---------- text -------------------------------------------------------------
+%
+
+%
+% interface
+%
+
+\section{Interface}
+
+As explained earlier, the kaneton microkernel is subdivided into several
+managers. Each manager provides an interface to manipulate the kaneton object
+it is in charge of or something the manager provides an abstraction for.
+
+The naming scheme used for these provided functions is normalised and
+detailed below.
+
+% manager
+
+\subsection*{Manager}
+
+Every manager must provide functions for initialisation and cleanup.
+
+Therefore, the \code{initialize()} function initialises a manager given
+parameters though, most of the time, the manager does not take any parameter.
+
+The \code{clean()} function, cleans the manager from anything so that it
+can return to a stable and clean state.
+
+% information
+
+\subsection*{Information}
+
+The following functions are provided for displaying information on either
+the manager, its objets or both.
+
+The function \code{show()} displays information on a given identified object.
+
+On the other hand, the \code{dump()} function displays information on the
+manager, including a dump of every object held by the manager.
+
+% object
+
+\subsection*{Object}
+
+The function \code{reserve()} allocates an object given some properties
+whilst the \code{release()} function releases it.
+
+The function \code{clone()} creates a copy of the given object. Cloning an
+object implies cloning every object this object holds or depends on.
+
+The \code{object()} function is used for retrieving a kaneton object given its
+identifier. Note that this function is private to the manager though it is
+sometimes used by other intrusive managers.
+
+% attributes
+
+\subsection*{Attributes}
+
+The following functions enables the caller to access an object attribute.
+
+The function \code{give()} gives the ownership to another entity whilst
+the function \code{flush()} releases every object previously reserved.
+
+In addition, the kaneton managers generally provide functions for modifying
+a property of a given identified object. Such functions typically take the
+name of the property to modify.
+
+Finally, every manager provides an \code{get()} function which
+returns the state of an object's property while \code{set()} enables the
+caller to update a property.
+
+%
+% organisation
+%
+
+\section{Organisation}
+
+The \location{kaneton/} directory is organised as follows:
+
+\begin{verbatim}
+  core/
+  include/
+  library/
+  machine/
+  modules/
+\end{verbatim}
+
+The \location{library/} directory contains the microkernel-specific C library
+whilst the \location{include/} directory contains links to the include
+directories of every component.
+
+The \location{core/} directory obviously contains everything related to the
+core including the source code and header files. This directory contains
+an \location{include/} directory with the core header files and a directory
+for every manager.
+
+The \location{machine/} directory contains three subdirectories, one for each
+machine-related component:
+
+\begin{verbatim}
+  architecture/
+  glue/
+  platform/
+\end{verbatim}
+
+The \location{glue/} directory contains subdirectories for every couple
+platform/architecture supported. Each of these directories contains the
+source code files, an \location{include/} directory for the header files and
+a \location{layout/} directory which contains information used by the linker
+in order to place the different elements at precise memory locations.
+
+The \location{platform/} and \location{architecture/} directories are organised
+the same way with subdirectories for every supported platforms and
+architectures, respectively.
+
+Finally the \location{modules/} directory contains conditionally-linked
+static modules \ie{} pieces of code that add a functionality to the
+microkernel without being intrusive.

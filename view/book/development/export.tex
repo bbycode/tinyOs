@@ -1,0 +1,188 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/book/development/export.tex
+%
+% created       julien quintard   [wed may 23 18:58:41 2007]
+% updated       julien quintard   [tue may 20 17:04:56 2008]
+%
+
+%
+% ---------- export -----------------------------------------------------------
+%
+
+\subsection{Export}
+\label{section:export}
+
+The \name{export} tool was introduced for making the releasing process
+easier. The tool does its job based on action description YAML files.
+
+Recall the kaneton microkernel project is used as a material for operating
+system courses. The source code of the microkernel is distributed to
+the students with some parts missing. Then, students have to re-write
+these pieces of code in order to prove their well-understanding of the
+kernel internals. Additionnaly, the kaneton project is also a research project
+in operating systems design.
+
+As a result, the \name{export} tool sometimes has to build a release
+with pieces of code removed, sometimes not. The tool has been build to
+be flexible enough to fulfil multiple needs.
+
+The tool is build on a modular approach. Each module provides an action that
+can be used within a YAML file.
+
+A YAML file describes the sequence of actions to be performed to make an export. All the operations are performed in a temporary directory displayed at the begin of the export.
+
+Here is the list of the currently available modules :
+
+\begin{itemize}
+\item{svnexport} This module takes no argument. It performs an svn export of the kaneton SVN repository.
+\item{localexport} This module takes no argument. It performs a copy of the user's working copy.
+\item{import} This is a built-in module, it takes one argument : \name{filename}. This argument is the name of another YAML file to import and run. The YAML file has to be in the export folder, no path and no file extension should be put in the argument.
+\item{initenv} This module takes no argument. It de-initializes the kaneton environment. It can be used after calling localexport to clean the environment before making a snapshot.
+\item{fremovepattern} This module deletes every file or directory that matches the \name{pattern} argument which is a regular expression. For instance, to clean the export of all the subversion folders, the pattern \code{.*\textbackslash.svn} can be used.
+\item{fremove} This module deletes the file or directory described in the argument \name{path}. It should be a relative path based on the repository root directory, like for instance : \location{boot/bootloader}.
+\item{fmove} This module moves the file or directory described in the argument \name{src} to the path described in the argument \name{dst}. If the entity to be moved is a file, the \name{dst} argument must be a filename, not a directory where the file should be moved.
+\item{freplace} This module copies the file described in the argument \name{src} to the path described in the argument \name{dst}. The \name{dst} argument must be a filename, not a directory where the file should be copied. This module can be used to replace files by templates stored in \location{export/data}.
+\item{symlink} This modules creates a symbolic link named by the argument \name{name} pointing to the file described in the argument \name{target}.
+\item{bremove} This module removes a block of lines in a file. It takes one argument : \name{id} which has this syntax : \code{path/to/file::block\_name}. The syntax of blocks declaration is explained below.
+\item{breplace}This module replaces a block of lines in a file. It takes two arguments : \name{id} which has this syntax : \code{path/to/file::block\_name} and \name{data} which is the text to be put instead of the removed lines. The syntax of blocks declaration is explained below.
+\end{itemize}
+
+% syntax
+
+\subsubsubsection{Blocks Syntax}
+
+As explained previously, pieces of code are being identified by blocks, in
+order to be processed by the export tool.
+
+The code below illustrates how to tag some code to make a block:
+
+\begin{verbatim}
+  /*                                                          [block::clone] */
+
+  /*
+   * this function clones a segment.
+   *
+   * steps:
+   *
+   * 1) get the original segment object.
+   * 2) reserve a new segment of same size with same permissions.
+   * 3) copy the data from the old segment.
+   * 4) call machine-dependent code.
+   */
+
+  t_status                 segment_clone(i_as                      asid,
+                                        i_segment                 old,
+                                        i_segment*                new)
+  {
+    o_segment*            from;
+    t_perms               perms;
+
+    SEGMENT_ENTER(segment);
+
+    /*
+     * 1)
+     */
+
+    if (segment_get(old, &from) != STATUS_OK)
+      SEGMENT_LEAVE(segment, STATUS_UNKNOWN_ERROR);
+
+    [...]
+
+    /*
+     * 4)
+     */
+
+    if (machine_call(segment, segment_clone, asid, old, new) != STATUS_OK)
+      SEGMENT_LEAVE(segment, STATUS_UNKNOWN_ERROR);
+
+    SEGMENT_LEAVE(segment, STATUS_OK);
+  }
+
+  /*                                                       [endblock::clone] */
+\end{verbatim}
+
+The markings at the top \code{[block::clone]} and bottom \code{[endblock::clone]} of this
+example indicate the \name{export} tool that the block called \name{clone} in this file
+contains the function segment\_clone. This block can then be used in YAML files to perform
+actions such as removal or replacement on the content of this block.
+
+Note that the marked areas must not overlap, the \name{export} tool's
+behaviour being undetermined in such cases.
+
+\subsubsubsection{YAML Syntax}
+An export is described in a YAML file. It contains a list of modules to call with their arguments. The tag for the module to call is \name{operation}. Some optional tags must be added, depending on the module that is being called.
+
+Here is an example of a YAML file :
+
+\begin{verbatim}
+---
+-
+  operation: localexport
+
+-
+  operation: initenv
+
+-
+  operation: fremovepattern
+  pattern: .*\.svn
+
+-
+  operation: import
+  filename: k1
+
+-
+  operation: fremove
+  path: tool/ctc
+
+-
+  operation: fmove
+  src: kaneton/libc
+  dst: libc
+
+-
+  operation: freplace
+  src: export/data/Makefile
+  dst: Makefile
+
+-
+  operation: breplace
+  id: kaneton/core/id/id.c::test
+  data: |
+    if (a)
+      b = 2;
+    else
+      c = 3;
+
+-
+  operation: bremove
+  id: kaneton/core/core.c::foo
+
+-
+  operation: symlink
+  name: kaneton/core/test
+  target: kaneton/core/region
+
+\end{verbatim}
+
+All the paths that are used must be relative to the repository root directory.
+
+\subsubsubsection{Usage}
+
+All YAML files must be in the \location{export/} directory.
+
+They can be called by running : \code{make export-filename} where filename is the name of a YAML file without the extension.
+
+It's important that the YAML file that is run starts by one of the two export commands : \code{svnexport} or \code{localexport}. For that reason, all YAML files are not executable, since some of them are being imported by others.
+
+Note that the commands are executed within the temporary directory sequentially. If your YAML script moves a folder, all other commands following the move command dealing with files in that folder must refer to the new location of the folder within the temporary folder.
+
+You have to write a YAML file for each export need you have, but operations can be factorized by using the import command.
+
+The export tool doesn't make a tarball for the moment. Instead, it displays the temporary folder when run, and does all the work in that folder, so the user can then make a tarball of this folder, or work in this folder directly.
+

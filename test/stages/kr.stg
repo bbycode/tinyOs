@@ -1,0 +1,34 @@
+#
+# ---------- header -----------------------------------------------------------
+#
+# project       kaneton
+#
+# license       kaneton
+#
+# file          /home/mycure/KANETON-TEST-SYSTEM/stages/kr.stg
+#
+# created       julien quintard   [tue nov  2 06:01:29 2010]
+# updated       julien quintard   [tue mar  1 12:37:52 2011]
+#
+
+name: kr
+description: This stage evaluates the kaneton implementation of 'rattrapage' students.
+configurations:
+  - name: Xen
+    platform: ibm-pc
+    architecture: ia32/educational
+    environments:
+      construct: xen
+      stress: xen
+    suite: k2
+    weight: 0.5
+  - name: Xen
+    platform: ibm-pc
+    architecture: ia32/educational
+    environments:
+      construct: xen
+      stress: xen
+    suite: k2
+    weight: 0.5
+deadline: "2011/05/03 23:42:00"
+history: "%school%/%year%/%group%/sources/k2.tar.bz2"

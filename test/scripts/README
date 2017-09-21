@@ -1,0 +1,101 @@
+#
+# ---------- header -----------------------------------------------------------
+#
+# project       kaneton
+#
+# license       kaneton
+#
+# file          /home/mycure/devices/test.opaak.org/scripts/README
+#
+# created       julien quintard   [mon nov  1 21:45:10 2010]
+# updated       julien quintard   [mon apr 11 10:10:34 2011]
+#
+
+This directory contains standalone scripts for performing various
+tasks.
+
+#
+# ---------- construct --------------------------------------------------------
+#
+
+The construct.py script basically takes a kaneton snapshot and generated
+an image according to the environment specified, being QEMU, Xen etc.
+
+Note that this script is being used by the test system such that, whenever
+receiving a snapshot for testing against a given test suite, the test
+system starts by generating an image based on the snapshot.
+
+Example:
+
+  $> ./construct.py --snapshot kaneton.tar.bz2 --image kaneton.img	\
+                    --environment qemu --architecture "ia32/educational"
+
+#
+# ---------- stress -----------------------------------------------------------
+#
+
+The stress.py script takes an image, launches it in a virtual environment---
+being QEMU or Xen---and then triggers the test belonging to the given test
+suite.
+
+The script displays the test results but can also generate a bulletin file
+summarizing the results including the output, duration and status of every
+test.
+
+Example:
+
+ $> ./stress.py --i kaneton.img --environment xen --suite k2
+
+#
+# ---------- dump -------------------------------------------------------------
+#
+
+The dump script takes any YAML-based file such as databases, statements,
+reports etc. and displays its inner data fields in a hierarchised way.
+
+  $> ./ dump --path ../store/statement/20101101-181637.db
+
+#
+# ---------- test -------------------------------------------------------------
+#
+
+The test script takes a report, potentially new, tests it and completes it
+with the results.
+
+  $> ./test.py --report 20101205:224913
+
+#
+# ---------- distribute -------------------------------------------------------
+#
+
+The distribute standalone script takes a set of capabilities and emails them
+to their recipient.
+
+Example:
+
+  $> ./distribute --pattern "^epita::2011.*$"
+
+#
+# ---------- file -------------------------------------------------------------
+#
+
+This script retrieves the submitted snapshots and saves them in a directory
+according to the student's school, year and group/student name.
+
+  $> ./file --pattern "^epita::2011.*$" --stage k0
+
+#
+# ---------- evaluate ---------------------------------------------------------
+#
+
+The evaluate script takes the student capabilities, retrieve the snapshots
+from their databases according to the given stage.
+
+These snapshots are then tested against a set of test suites before evaluating
+the results based on a set of points.
+
+The script then issues a statement containing the students' grades.
+
+Example:
+
+  $> ./evaluate --pattern "^epita::.*$" --stage k1

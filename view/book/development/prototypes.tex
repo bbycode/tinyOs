@@ -1,0 +1,121 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/book/development/prototypes.tex
+%
+% created       julien quintard   [fri jun  1 01:07:42 2007]
+% updated       julien quintard   [tue may 20 01:07:59 2008]
+%
+
+%
+% ---------- prototypes -------------------------------------------------------
+%
+
+\subsection{Prototypes}
+\label{section:prototypes}
+
+The \location{tool/} directory contains a interesting tool developed by
+the kaneton community for generating \name{C} prototypes automatically.
+
+This tool named \name{mkp} must not be used directly as the prototypes
+automatic generation can be triggered from the \name{Make} files via the
+\name{prototypes} rule. This rule should be called everytime a developer
+wants the prototypes to be correct, for instance, before starting a compiling
+process.
+
+This tool was introduced to avoid spending time writing prototypes.
+Since, this utility generates the prototypes automatically, developers
+should no longer write prototypes manually.
+
+This script takes a list of \name{C} header files as arguments. These header
+files are supposed to contain a \name{prototypes} section as illustrated
+below:
+
+\begin{verbatim}
+  /*
+   * ---------- prototypes ----------------------------------------------------
+   *
+   *      ../../core/set/set.c
+   *      ../../core/set/set-array.c
+   *      ../../core/set/set-ll.c
+   *      ../../core/set/set-bpt.c
+   *      ../../core/set/set-pipe.c
+   *      ../../core/set/set-stack.c
+   */
+
+  [...]
+
+  /*
+   * eop
+   */
+\end{verbatim}
+
+The \name{mkp} tool then retrieve the list of the \name{C} source files
+listed in the \name{prototypes} section and remove the text between
+the \name{prototypes} opening section and the \code{eop} tag.
+
+Then, the script goes through each of the listed source files and tries to
+detect \name{C} function declarations. For each function declaration found,
+the tool generates a prototype in the corresponding header file.
+
+Below is an example of a header file with such a \name{prototypes}
+section and generated prototypes.
+
+\begin{verbatim}
+  /*
+   * ---------- prototypes ----------------------------------------------------
+   *
+   *      ../../core/set/set.c
+   *      ../../core/set/set-array.c
+   *      ../../core/set/set-ll.c
+   *      ../../core/set/set-bpt.c
+   *      ../../core/set/set-pipe.c
+   *      ../../core/set/set-stack.c
+   */
+
+  /*
+   * ../../core/set/set.c
+   */
+
+  t_status                 set_dump(void);
+
+  t_status                 set_size(i_set                          setid,
+                                   t_setsz*                       size);
+
+  t_status                 set_new(o_set*                          o);
+
+  t_status                 set_destroy(i_set                       setid);
+
+  t_status                 set_descriptor(i_set                    setid,
+                                         o_set**                  o);
+
+  t_status                 set_get(i_set                           setid,
+                                  t_id                            id,
+                                  void**                          o);
+
+  t_status                 set_init(void);
+
+  t_status                 set_clean(void);
+
+
+  /*
+   * ../../core/set/set-array.c
+   */
+
+  t_status                 set_type_array(i_set                    setid);
+
+  t_status                 set_show_array(i_set                    setid);
+
+  t_status                 set_head_array(i_set                    setid,
+                                         t_iterator*              iterator);
+
+  [...]
+
+  /*
+   * eop
+   */
+\end{verbatim}

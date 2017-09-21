@@ -1,0 +1,306 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/exam/kernels/2010/kernels.tex
+%
+% created       julien quintard   [mon may 14 21:56:41 2007]
+% updated       julien quintard   [wed jun 16 21:59:20 2010]
+%
+
+%
+% ---------- setup ------------------------------------------------------------
+%
+
+%
+% path
+%
+
+\def\path{../../..}
+
+%
+% template
+%
+
+\input{\path/template/exam.tex}
+
+%
+% title
+%
+
+\title{Noyaux et Syst\`emes d'Exploitation}
+
+%
+% header
+%
+
+\lhead{\scriptsize{EPITA\_ING2 - 2010\_S4 - NSE}}
+\rhead{}
+
+%
+% document
+%
+
+\begin{document}
+
+%
+% title
+%
+
+\maketitle
+
+%
+% identation
+%
+
+\indentation{}
+
+%
+% --------- information -------------------------------------------------------
+%
+
+\begin{center}
+
+\textbf{Documents Interdits}
+
+\textbf{Dur\'ee 3 heures}
+
+\scriptsize{Une copie bien pr\'esent\'ee sera toujours mieux not\'ee
+            qu'une autre.}
+
+\end{center}
+
+%
+% --------- text --------------------------------------------------------------
+%
+
+%
+% XXX
+%
+
+\section{Boot \& M\'emoire
+         {\hfill{} \normalfont{\scriptsize{5 points}}}}
+
+Pour les 5 questions suivantes, vous r\'epondrez par Vrai ou Faux. Dans le cas ou une r\'eponse est fausse, vous r\'edigerez un paragraphe justifiant votre r\'eponse et corrigeant l'affirmation (un ``Faux'' non justifi\'e ou incorrectement justifi\'e ne donne aucun point).
+
+\begin{enumerate}
+
+\item L'interface entre un bootloader et un noyau de syst\`eme d'exploitation est standard et commune \`a toutes les architectures mat\'erielles.
+
+\item La segmentation permet de d\'efinir un espace d'adressage virtuel dans lequel des zones de taille variable appell\'ees segments sont mapp\'ees \`a des zones en m\'emoire physique. Un segment \'etant d\'efini par l'adresse de base en m\'emoire physique qui correspondra \`a l'adresse virtuelle 0 (zero) au sein de ce segment, et par la taille du segment.
+
+\item Dans le cas d'une m\'emoire virtuelle utilisant la pagination, les TLB contenus dans la m\'emoire cache permettent de stocker le contenu de la m\'emoire afin d'\'eviter de devoir faire un acc\`es \`a la RAM dans le cas de donn\'ees ayant d\'ej\`a \'et\'e lues r\'ecemment.
+
+\item La technique de swap permet d'acc\'el\'erer la copie de pages m\'emoire en mappant en lecture seule la m\^eme page en m\'emoire physique sur plusieurs adresses virtuelles.
+
+\item Il est impossible de garantir une isolation des donn\'ees de diff\'erents processus au sein d'un syst\`eme qui ne dispose pas de m\'ecanisme mat\'eriel permettant d'impl\'ementer une m\'emoire virtuelle (MMU).
+
+\end{enumerate}
+
+
+\begin{correction}
+
+\begin{enumerate}
+
+\item FAUX : Les architectures des processeurs etant differents, le passage d'informations entre le bootloader et le kernel peut et doit donc se faire de differentes manieres (structure en ram, registres, \ldots). Les services mis en place par le firmware ne sont pas forcement accessibles de la meme maniere selon le firmware (via pointeur vers un handler, via une interruption logicielle, \ldots).
+
+\item VRAI
+
+\item FAUX : Les TLB ne stockent pas le contenu de la memoire, mais la correspondance entre adresse virtuelle et adresse physique.
+
+\item FAUX : Le swap permet d'economiser la memoire physique en deplacant les donnees des pages rarement utilisees vers un autre stockage tel qu'un disque dur et en les rapatriant lorsque ces donnees ont besoin d'etre accedees. Le fait de mapper en lecture seule la meme page en memoire physique sur plusieurs adresses virtuelles est utilise dans une autre technique nommee Copy-on-write.
+
+\item VRAI
+
+\end{enumerate}
+
+\end{correction}
+
+%
+% XXX
+%
+
+\section{Ex\'ecution
+         {\hfill{} \normalfont{\scriptsize{5 points}}}}
+
+\begin{enumerate}
+  \item
+    Dans un tableau \`a double-entr\'ee, vous donnerez les avantages et
+    les d\'esavantages des user-level threads et des kernel-level threads.
+    (1.5 points)
+  \item
+    Apr\`es avoir rappel\'e les objectifs d'un bon ordonnanceur, vous
+    d\'ecrirez dans les grandes lignes le fonctionnement d'un des
+    ordonnanceurs du noyau Linux 2.6: O(1) ou CFS. (2 points)
+  \item
+    K\'evin overclock son processeur. Au red\'emarrage, son \textit{Ubuntu}
+    plante syst\'ematiquement et son terminal affiche le message
+    ``kernel panic''.
+
+    \begin{enumerate}
+      \item
+        Donnez une des causes physiques pouvant entra\^iner cette erreur.
+        (0.5 point)
+      \item
+        Expliquez succinctement comment cet \'ev\'enement est trait\'e et
+        remont\'e au noyau sur l'architecture x86? (0.5 point)
+      \item
+        Pourquoi cette erreur entra\^ine-t-elle le blocage complet de
+        la machine? (0.5 point)
+    \end{enumerate}
+\end{enumerate}
+
+\begin{correction}
+
+XXX
+
+\end{correction}
+
+%
+% XXX
+%
+
+\section{P\'eriph\'erique et virtualisation
+         \normalfont{{\hfill{} \scriptsize{4 points}}}}
+
+\begin{enumerate}
+  \item
+        Expliquez le concept de paravirtualisation aussi bien pour le kernel
+        que pour les drivers.
+  \item 
+        Identifiez les differentes \'etapes \`a prendre en consid\'eration
+        lorsque l'on souhaite exposer un p\'eriph\'erique PCI appartenant \`a la machine
+        physique (host) dans une machine virtuelle.
+\end{enumerate}
+
+\begin{correction}
+
+\begin{enumerate}
+  \item
+        La paravirtualisation est une technique qui revient a modifier du code
+        machine (driver, kernel) pour qu'il ne se repose plus sur le hardware
+        mais sur l'API d'un hypervieur/VMM (virtual machine monitor).
+
+        Il est possible d'installer des drivers specifique a l'hyperviseur sur
+        un noyau non paravirtualis\'e on parle alors de PV driver (driver
+        paravirtualis\'e). Cela a pour but d'am\'eliorer conciderablement les
+        performances surtout au niveau des drivers d'entrer/sortie.
+  \item
+       \begin{enumerate}
+       \item Exposer le pr\'eriph\'erique physique sur le bus pci emul\'e
+       \item Exposer l'espace de configuration pci (pci config space)
+       \item Mapper les ioports, mmio, dans la virtual machine
+       \item Rediriger les requettes DMA gr\^ace a une IOMMU
+       \end{enumerate}
+\end{enumerate}
+
+\end{correction}
+
+% 
+% securite
+%
+
+\section{S\'ecurit\'e
+         \normalfont{{\hfill{} \scriptsize{3 points}}}}
+
+\begin{enumerate}
+  \item
+    Quels sont les principes de s\'ecurit\'e fondamentaux \`a respecter
+    de mani\`ere \`a concevoir un syst\`eme s\'ecuris\'e?
+  \item
+    Quelles sont les diff\'erences entre les syst\`emes de contr\^ole d'acc\`es
+    de type \textit{MAC} et \textit{DAC}?
+  \item
+    Qu'est ce qu'une \textit{capability}? Quel probl\`eme ce type d'objet
+    permet-il de r\'esoudre? Quelles diff\'erences existe-il entre une
+    \textit{capability} et un \textit{authorization certificat}?
+\end{enumerate}
+
+\begin{correction}
+
+\begin{enumerate}
+  \item
+    Les principes fondamentaux sont:
+
+    \begin{itemize}
+      \item
+        Security Through Transparency;
+      \item
+        Security Through Design;
+      \item
+        Principle of Least Privilege.
+    \end{itemize}
+  \item
+    Dans un syst\`eme de type \textit{MAC}, les acc\`es sont contr\^ol\'es
+    par une unique entit\'e administrative. De tels syst\`emes ont \'et\'es
+    con\c{c}us par et pour des organisations militiaires via l'utilisation
+    de niveau de s\'ecurit\'e attribu\'es aux documents et aux personnes.
+
+    \`A l'inverse, dans un syst\`eme \textit{DAC}, le contr\^ole d'acc\`es
+    est assur\'e par le propri\'etaire de l'objet.
+  \item
+    Une \textit{capability} est un jeton communicable et non-forgeable qui
+    repr\'esente un \`a la fois l'objet mais \'egalement les permissions
+    que le d\'etenteur du jeton a sur l'objet.
+
+    Ce type d'outil permet de respecter le principe de moindres privil\`eges.
+
+    Un \textit{authorization certificate} fournit les m\^eme possibilit\'es
+    qu'une \textit{capability}. En revanche, les techniques cryptographiques
+    utilis\'ees par les \textit{capabilities} sont moins lourdes et donc mieux
+    adapt\'ees aux syst\`emes d'exploitation. En revanche, les serveurs doivent
+    garder un certain nombres d'informations alors que ce n'est pas le cas
+    via l'utilisation de \textit{authorization certificates} puisque le
+    processus de v\'erification ne fait intervenir que la clef priv\'ee du
+    serveur.
+\end{enumerate}
+
+\end{correction}
+
+%
+% Noyau Windows NT, Noyaux Avances
+%
+
+\section{Noyau Windows NT, Noyaux Avanc\'es
+         \normalfont{{\hfill{} \scriptsize{3 points}}}}
+
+\begin{enumerate}
+  \item
+	Citez les principes du design de Windows NT. Si pr\'esente, une explication
+	correcte rapportera des points. (2 points)
+  \item
+	Quel a \'et\'e l'impact de Spring sur les noyaux qui lui ont succ\'ed\'e? (1 point)
+\end{enumerate}
+
+\begin{correction}
+
+\begin{enumerate}
+  \item
+	Les points fondamentaux:
+	\begin{itemize}
+	  \item noyau monolithique, dit hybride: un seul espace d adressage mais
+	  communication par message (IRP)
+	  \item message passing (IRP)
+          \item modele d io asynchrone
+	  \item multithreade
+	  \item oriente objet: toute resource est implementee par un objet
+	  \item object manager
+	  \item modele de driver en stack
+	\end{itemize}
+  \item
+	Impacts de Spring (cf slides)
+	\begin{itemize}
+	  \item service de nommage (Windows NT)
+	  \item travaux sur les IPCs (L4)
+	  \item IDL (Corba)
+	  \item Doors (SunOS)
+	  \item RPC, LPC (SunOS, Windows NT)
+	\end{itemize}
+\end{enumerate}
+
+\end{correction}
+
+\end{document}

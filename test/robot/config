@@ -1,0 +1,10 @@
+#
+# note that this file assumes that the kaneton test system
+# is located in the /kaneton/ directory; hence that the
+# robot is located in:
+#
+#   /kaneton/robot/.
+#
+Host repositories.passeism.org
+  User kaneton:robot
+  IdentityFile /kaneton/robot/robot.prv

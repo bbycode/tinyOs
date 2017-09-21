@@ -1,0 +1,9 @@
+name: core/timer/reserve/01
+description: This test sets up a single timer.
+symbol: test_core_timer_reserve_01
+signature: za90fiowigowehgrh
+output:
+points: 1
+timeout:
+  qemu: 12
+  xen: 3

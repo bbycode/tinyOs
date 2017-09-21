@@ -1,0 +1,96 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/book/development/view.tex
+%
+% created       julien quintard   [wed may 23 00:36:53 2007]
+% updated       julien quintard   [mon may  4 19:43:15 2009]
+%
+
+%
+% ---------- view -------------------------------------------------------------
+%
+
+\subsection{View}
+\label{section:view}
+
+The \name{view} tool serves as a document database as well as a tool for
+building and displaying documents in an easy way.
+
+The kaneton documents are classified, each directory corresponding to a
+class of documents. Below are listed the subdirectories of the \location{view/}
+directory.
+
+\begin{verbatim}
+  bibliography/
+  book/
+  exam/
+  feedback/
+  figures/
+  internship/
+  lecture/
+  logo/
+  package/
+  paper/
+  talk/
+  template/
+\end{verbatim}
+
+The \location{template/} directory contains templates for every class of
+document. The \location{bibliography/} and \location{logo/} directories
+contain, obviously, the bibliography which is common to all the documents, and
+the logos, respectively. The \location{figures/} directory contains figures
+common to all the documents while the \location{package/} directory contains
+additional {\LaTeX} packages.
+
+The directories \location{curriculum/}, \location{exam/} and
+\location{feedback/} contain documents in relation with teaching. The
+\location{curriculum/} directory contains documents such as the educational
+project year planning \etc{} The \location{feedback/} directory contains
+documents which are distributed to the students at the end of the kaneton
+project in order to get feedback for improving the project for the next years.
+Needless to say the \location{exam/} directory contains everything related to
+examinations while the \location{talk/} directory contains conference talks
+and various presentations of the education project for instance.
+
+The other directories contain the actual kaneton documentation. The
+\name{books} represent the main documents targeting any public:
+contributors, teachers, students \etc{} The \name{papers} are lighter
+documents intended to present a specific feature, design \etc{} The
+\name{lectures} are the courses materials, generally composed of
+presentation slides. Finally, the \name{internship} documentation is
+composed of documents written by people partially involved in the kaneton
+project.
+
+Any document is composed of a \name{Make} file and one or more
+{\LaTeX} files. The \name{Make} file always has the same form
+with little variations depending on the type of document. For more information
+on the rules applying to the \name{Make} and {\LaTeX} files, please
+refer to their respective sections: \reference{Section \ref{section:make}}
+and \reference{Section \ref{section:python}}.
+
+The \name{view} tool basically starts looking for \location{.tex} files
+and builds a list of directories containing documents. Then, it provides
+to the user the possibility to build and display a given document. If no
+document name is given on the command line, then the tool draws a list
+of the available documents.
+
+People contributing to the kaneton documents must take care of following
+the rules in relation with the {\LaTeX} language. Moreover, contributors
+should look at the existing documents to understand to logic behind all
+these rules.
+
+Finally, note that nobody should create a document without discussing it
+on the mailing-list first. Especially, be very careful in naming your
+documents as people took good care of this directory in order to avoid
+it to become messy.
+
+If a document already exists with the same name, then go through the
+mailing-list in order to decide whether to keep the current version. If
+people decide to keep a document, then, the contributor in charge of writing
+the new one should re-organise the documents by creating archives for
+each year.

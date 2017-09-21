@@ -1,0 +1,31 @@
+#
+# ---------- header -----------------------------------------------------------
+#
+# project       kaneton
+#
+# license       kaneton
+#
+# file          /home/mycure/kaneton/test/suites/k3.suite
+#
+# created       julien quintard   [tue nov  2 07:34:01 2010]
+# updated       julien quintard   [sun feb  6 11:35:01 2011]
+#
+
+name: k3
+description: This test suite contains tests related to the execution.
+components:
+  task:
+    - kaneton/core/task/
+
+  thread:
+    - kaneton/core/thread/
+
+  scheduler:
+    - kaneton/core/scheduler/
+    - kaneton/machine/architecture/ia32/scheduler/
+
+  event:
+    - kaneton/machine/architecture/ia32/event/exception/06/
+    - kaneton/machine/architecture/ia32/event/exception/07/
+    - kaneton/machine/architecture/ia32/event/flags/
+    - kaneton/machine/architecture/ia32/event/map/

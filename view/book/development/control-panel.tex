@@ -1,0 +1,164 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/book/development/control-panel.tex
+%
+% created       julien quintard   [sun may 20 15:22:52 2007]
+% updated       julien quintard   [mon may  4 20:01:20 2009]
+%
+
+%
+% ---------- control panel ----------------------------------------------------
+%
+
+\subsection{Control Panel}
+\label{section:control panel}
+
+The kaneton environment allows the developer to trigger every action from
+the \name{Make} file of the project's root directory.
+
+These actions are listed below:
+
+\command{make initialize}
+        {
+	  This action initializes the kaneton development environment by
+	  invoking the \location{init.py} script of the \location{environment/}
+	  directory.
+	}
+
+\command{make clean}
+	{
+	  This action cleans the kaneton development environment.
+	}
+
+\command{make main}
+	{
+	  This action triggers the default rule which aims at compiling every
+	  piece the final system needs to be set up on a bootable device.
+
+	  \-
+
+	  \example{\$ make main}
+
+	  \example{\$ make}
+	}
+
+\command{make clear}
+	{
+	  This action removes every compiled files.
+	}
+
+\command{make headers}
+	{
+	  This action generates \name{Make} files' \name{C} header
+	  files dependencies.
+	}
+
+\command{make prototypes}
+	{
+	  This action generates C prototypes.
+	}
+
+\command{make test}
+	{
+	  This action runs the test suite in order to validate the kaneton
+	  microkernel behaviour.
+	}
+
+\command{make cheat}
+	{
+	  This action launches the cheat tests on students kaneton
+	  implementations.
+
+	  \-
+
+	  \example{\$ make cheat}
+
+	  \-
+
+	  \example{\$ make cheat-EPITA::2006::k3}
+	}
+
+\command{make build}
+	{
+	  This action builds the boot device.
+	}
+
+\command{make install}
+	{
+	  This action installs the kaneton microkernel with its dependencies:
+	  configuration files, bootloader \etc{} on the boot device.
+	}
+
+\command{make export}
+	{
+	  This action builds a kaneton distribution package.
+
+	  \-
+
+	  \example{\$ make export}
+
+	  \-
+
+	  \example{\$ make export-k3,5}
+
+	  \-
+
+	  \example{\$ make export-back}
+	}
+
+\command{make view}
+	{
+	  This action builds and displays a kaneton document.
+
+	  \-
+
+	  \example{\$ make view}
+
+	  \-
+
+	  \example{\$ make view-devel}
+
+	  \-
+
+	  \example{\$ make view-book::kaneton}
+	}
+
+\command{make record}
+	{
+	  This action records a real-time session.
+
+	  \-
+
+	  \example{\$ make record}
+
+	  \-
+
+	  \example{\$ make record-basic::test.ts}
+	}
+
+\command{make play}
+	{
+	  This action plays a recorded session.
+
+	  \-
+
+	  \example{\$ make play}
+
+	  \-
+
+	  \example{\$ make play-basic::prototypes.ts}
+
+	  \-
+
+	  \example{\$ make play-prototy}
+	}
+
+\command{make info}
+	{
+	  This action displays general information about kaneton.
+	}

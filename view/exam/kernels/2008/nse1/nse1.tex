@@ -1,0 +1,144 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/exam/kernels/2008/nse1/nse1.tex
+%
+% created       julien quintard   [mon may 14 21:56:41 2007]
+% updated       julien quintard   [thu may 22 19:41:38 2008]
+%
+
+%
+% ---------- setup ------------------------------------------------------------
+%
+
+%
+% path
+%
+
+\def\path{../../../..}
+
+%
+% template
+%
+
+\input{\path/template/exam.tex}
+
+%
+% listings package
+%
+
+\usepackage{listings}
+\definecolor{darkgray}{rgb}{0.95,0.95,0.95}
+\lstset{language=C}
+\lstset{backgroundcolor=\color{darkgray}}
+\lstset{numbers=left, numberstyle=\tiny, tabsize=4, stepnumber=1, numbersep=5pt}
+\lstset{keywordstyle=\bfseries}
+\lstset{basicstyle=\footnotesize}
+
+\setlength{\marginparwidth}{10pt}
+%
+% header
+%
+
+% \lhead{\scriptsize{Noyaux et Syst\`emes d'exploitation}}
+% \rhead{\scriptsize{2008}}
+
+%
+% title
+%
+
+\title{{\huge {\bf Noyaux et Systèmes d'exploitation}}}
+
+%
+% authors
+%
+
+\author{{Julian Pidancet \& Elie Bleton}}
+
+%
+% document
+%
+
+\begin{document}
+
+%
+% title
+%
+
+\maketitle
+
+%
+% identation
+%
+
+\indentation{}
+
+%
+% --------- information -------------------------------------------------------
+%
+
+\begin{center}
+\vspace{1cm}
+
+{\huge {\bf Examen NSE1}}
+
+\vspace{2cm}
+
+{\large
+{\bf Ordinateurs, PDA et téléphones non autorisés}
+
+{\bf Documents autorisés}
+
+\vspace{1cm}
+
+{\bf Durée : 2 heures}
+}
+\end{center}
+
+\vspace{2cm}
+
+{\large {\bf Important :}}\\
+\begin{itemize}
+\item Le barème est donné à titre indicatif, en cas de modifications,
+      aucune contestation ne sera possible.
+
+\item Un point de malus sur la note globale sanctionnera les copies peu
+      soignées ou mal orthographiées.
+
+\item Vos réponses seront concises : {\bf courtes, claires et précises}.
+
+\item Lorsqu'il vous est demandé d'écrire du code vous pourrez
+     négliger la gestion des erreurs uniquement lorsqu'elle
+     n'apporte rien au problème. En revanche, vous devrez gérer les
+     erreurs provoquant un segfault.
+\end{itemize}
+
+
+%
+% --------- text --------------------------------------------------------------
+%
+
+\vspace{3cm}
+
+\newpage
+\part*{Exercices}
+
+\input{asm.tex}
+
+\newpage
+
+\input{alloc.tex}
+
+\newpage
+
+\input{interrupts.tex}
+
+\newpage
+
+\input{paging.tex}
+
+\end{document}

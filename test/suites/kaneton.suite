@@ -1,0 +1,51 @@
+#
+# ---------- header -----------------------------------------------------------
+#
+# project       kaneton
+#
+# license       
+#
+# file          /home/mycure/KANETON-TEST-SYSTEM/suites/kaneton.suite
+#
+# created       julien quintard   [tue nov  2 07:34:08 2010]
+# updated       julien quintard   [sun dec  5 20:29:32 2010]
+#
+
+name: kaneton
+description: This test suite triggers all the tests.
+components:
+  id:
+    - kaneton/core/id/
+
+  set:
+    - kaneton/core/set/
+
+  event:
+    - kaneton/machine/architecture/ia32/event/
+
+  timer:
+    - kaneton/core/timer/
+
+  segment:
+    - kaneton/core/segment/
+
+  region:
+    - kaneton/core/region/
+    - kaneton/machine/architecture/ia32/region/
+
+  map:
+    - kaneton/core/map/
+
+  as:
+    - kaneton/core/as/
+    - kaneton/machine/architecture/ia32/as/
+
+  task:
+    - kaneton/core/task/
+
+  thread:
+    - kaneton/core/thread/
+
+  scheduler:
+    - kaneton/core/scheduler/
+    - kaneton/machine/architecture/ia32/scheduler/

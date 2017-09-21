@@ -1,0 +1,1028 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kane...ecture/kernels/windows-nt/windows-nt.tex
+%
+% created       fabien le mentec
+% updated       julien quintard   [wed apr 22 11:29:29 2009]
+%
+
+%
+% ---------- setup ------------------------------------------------------------
+%
+
+%
+% path
+%
+
+\def\path{../../..}
+
+%
+% template
+%
+
+\input{\path/template/lecture.tex}
+
+%
+% title
+%
+
+\title{Windows NT}
+
+%
+% document
+%
+
+\begin{document}
+
+%
+% title frame
+%
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+%
+% outline frame
+%
+
+\begin{frame}
+  \frametitle{Outline}
+
+  \tableofcontents
+\end{frame}
+
+%
+% Overview
+%
+
+\section{Overview}
+
+% 1)
+
+\begin{frame}
+  \frametitle{History}
+
+  \begin{itemize}
+    \item
+      Windows NT is a kernel designed in the 90s by Microsoft
+    \item
+      The very core concepts did not change since then
+    \item
+      The team led by \name{David Cutler}, previously working at DEC on VAX/VMS
+  \end{itemize}
+
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Design}
+
+  NT kernel was far ahead of his time regarding today s general purpose kernels evolution
+
+  \begin{itemize}
+    \item
+      monolithic kernel
+    \item
+      drivers communicate by passing messages
+    \item
+      stackable model
+    \item
+      asynchronous IO
+    \item
+      multithreaded
+    \item
+      hybrid is a marketing term (\name{Linus Torvald}: http://en.wikipedia.org/wiki/Hybrid\_kernel)
+  \end{itemize}
+
+\end{frame}
+
+% 3)
+
+\begin{frame}[containsverbatim]
+  \frametitle{Kernel As Seen By The Userland (1)}
+   
+  Look at the following userland code
+
+  \begin{verbatim}
+
+  HANDLE Handles[4];
+
+  // handles abstract every object type
+  Handles[0] = CreateFile(...);
+  Handles[1] = CreateThread(...);
+  Handles[2] = CreateEvent(...);
+  Handles[3] = CreateMutex(...);
+
+  // asynchronous io model
+  Overlapped.hEvent = Handles[2];
+  ReadFile(Handles[0], ..., &Overlapped);
+
+  // homogeneous model
+  WaitForMultipleObjects(Handles, 4, ...);
+
+  // common interface
+  CloseHandle(Handles[0]);
+  CloseHandle(Handles[1]);
+  CloseHandle(Handles[2]);
+  CloseHandle(Handles[3]);
+
+  \end{verbatim}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel As Seen By The Userland (2)}
+
+ It tells us long about the NT design
+
+ \begin{itemize}
+   \item
+     there is a design :)
+   \item
+     NT has been designed around the object model
+   \item
+     everything is object, manipulated by \code{HANDLE} in userland
+   \item
+     the scheduler acts as a central place for object synchronization
+   \item
+     IO requests are asynchronous
+ \end{itemize}
+
+\end{frame}
+
+
+%
+% Object Manager
+%
+
+\section{Object Manager}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Introduction}
+
+ The goal of every operating system is to manage \term{resources}, may
+ they be physical or virtual.
+
+  \-
+
+ The NT kernel approach is to represent resources as objects managed by a
+ subsystem, the \term{Object Manager}.
+
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Issues}
+
+  the Object Manager addresses the following issues
+
+  \begin{itemize}
+    \item
+      resource naming
+    \item
+      resource referencing
+    \item
+      resource access control
+ \end{itemize}
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Resources As Objects}
+
+  NT is very wide regarding what it calls a resource
+
+  \begin{itemize}
+    \item
+      file (\code{FILE\_OBJECT}), device (\code{DEVICE\_OBJECT}), driver (\code{DRIVER\_OBJECT}) ...
+    \item
+      process (\code{KPROCESS}), thread (\code{KTHREAD})
+    \item
+      synchronization: mutex (\code{KMUTEX}), event (\code{KEVENT}), callbacks ...
+    \item
+      even types are objects (\code{OBJECT\_TYPE})
+  \end{itemize}
+
+\end{frame}
+
+% 4)
+
+\begin{frame}
+  \frametitle{Objects Representation}
+
+  In memory object instances are splitted into a \term{header}, common to every
+  object type, and a type specific \term{body}. Since the header is common,
+  NT can manipulate every resource using the same interface. This header contains:
+
+  \begin{itemize}
+    \item
+      a pointer to the object \code{OBJECT\_TYPE}
+    \item
+      methods: \code{Dump}, \code{Open}, \code{Close}, \code{Delete}, \code{Parse}, \code{Security} ...
+    \item
+      security descriptor pointer
+    \item
+      reference counting information 
+  \end{itemize}
+\end{frame}
+
+% 5)
+
+\begin{frame}
+  \frametitle{Naming}
+
+  Every system needs to bind a \term{resource} to a \term{name}. The NT object
+  manager uses a tree naming scheme. Conceptually, the manager is thus very similar
+  to a filesystem as far as naming is concerned.
+
+  \begin{itemize}
+    \item
+      everything is stored  under a root directory
+    \item
+      (unfollowed) convention: one directory per object type (\location{/Driver/}, \location{/Callback/}, \location{/Device/} ...)
+    \item
+      subdirectory structure is type specific
+
+      \begin{itemize}
+        \item
+          \location{/Device/HarddiskVolume0/Dr0}
+        \item
+          \location{/Driver/Ntfs}
+        \item
+          \location{/Callback/PowerState}
+      \end{itemize}
+
+    \item
+      special directories: \location{/GLOBAL??/} seen in userland as \location{//./})
+    \item
+      symbolic links allowed: \location{//./C:} points to \location{/Device/HarddiskVolume0}
+  \end{itemize}
+
+\end{frame}
+
+
+% 6)
+
+\begin{frame}
+  \frametitle{Referencing}
+
+  Object lifetime relies upon a \term{reference count} stored in the object header.
+  Obtaining an object reference can be done by \term{address}, \term{name} or by
+  \term{handle}.
+
+  \begin{itemize}
+    \item
+      most of the time, kernel and drivers reference objects by address
+
+      \begin{itemize}
+        \item
+          \code{FILE\_OBJECT*}, \code{DEVICE\_OBJECT*}, \code{DRIVER\_OBJECT*}...
+        \item
+          \code{ObjectHeader = CONTAINER\_OF(Address, OBJECT\_HEADER, ObjectBody)}
+        \item
+          no lookup, access is done in o(1)
+      \end{itemize}
+
+    \item
+      userland (Windows Native API) references objects by \code{HANDLE}
+      \begin{itemize}
+        \item
+          \code{NtCreateFile}, \code{NtCreateProcess}, \code{NtClose} ...
+        \item
+          syscall has to find the object given its \code{HANDLE}
+      \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+
+% 7)
+
+\begin{frame}
+  \frametitle{Scalability}
+
+  As seen, object referencing is done in O(1) by the kernel. But the
+  userland manipulates \code{HANDLEs}, and this handle has to be resolved in
+  the corresponding object at every request (system call).
+
+  \begin{itemize}
+    \item
+       one handle table per process plus one for the system
+    \item
+      three level index table
+  \end{itemize}
+\end{frame}
+
+% 8)
+
+\begin{frame}
+  \frametitle{Access Control}
+
+  Every object has a \term{security descriptor}. Security descriptors are covered in
+  another section, but the object manager is the place where security controls actually
+  occur.
+
+  \begin{itemize}
+    \item
+      the basic function is \code{ObRerefenceObject}
+    \item
+      according to argument passed, perform access control or not
+   \item
+     generally, objects comming from the kernel are trusted and access control
+     is only done on \code{HANDLEs} provided by the userland.
+  \end{itemize}
+\end{frame}
+
+% 9)
+
+\begin{frame}
+  \frametitle{Putting It All Together}
+
+  \begin{itemize}
+    \item
+      userland process
+      \begin{itemize}
+        \item
+          \code{CreateFile(C://foo);}
+        \item
+          real system call \code{NtCreateFile(//./C:/foo);}
+      \end{itemize}
+
+    \item
+      kernel syscall implementation
+      \begin{itemize}
+        \item
+          \code{ObReferenceObjectByName(C://foo)}
+      \end{itemize}
+
+    \item
+      object manager
+      \begin{itemize}
+        \item
+          translates \location{//./C:/foo} to \location{/GLOBAL??/C:/foo}
+        \item
+          resolves the symlink to \location{/Device/HarddiskVolume0/foo}
+        \item
+          gets a \code{DEVICE\_OBJECT} on \location{/Device/HarddiskVolume0}
+        \item
+          sends an \code{IRP\_MJ\_CREATE} irp to io manager for the device object,  with \location{/foo} as argument
+      \end{itemize}
+
+    \item
+      io manager
+      \begin{itemize}
+        \item
+          finds the top most driver associated to this device object, (ie. ntfs)
+        \item
+          calls the driver dispatch routine for \code{IRP\_MJ\_CREATE}
+      \end{itemize}
+
+  \end{itemize}
+
+\end{frame}
+
+%
+% security
+%
+
+\section{Security}
+
+
+% 1)
+
+\begin{frame}
+  \frametitle{Security Building Blocks}
+
+  NT security model relies 3 building blocks to address the
+  \term{identification} and \term{permission} issues.
+
+  \begin{itemize}
+
+    \item
+      security identifier (SID)
+      \begin{itemize}
+      \item
+        couple (domain, account)
+      \item
+        given to the user at login time
+      \item
+        every object has an owner and a group SID
+      \end{itemize}
+
+    \item
+      Access Control Entry (ACE)
+      \begin{itemize}
+        \item
+          triple (access - deny, permissions, SID)
+        \item
+          grant or refuse a permission mask to a given SID. An audit feature is available too
+        \item
+          permission: read, write, syncrhonize, delete, traverse...
+      \end{itemize}
+
+    \item
+      Access Control List (ACL)
+      \begin{itemize}
+        \item
+          list of ACEs
+        \item
+          Discretionnary Access Control List (DACL) defines object accessibility
+        \item
+          System Access Control List (SACL) for object audit purpose
+      \end{itemize}
+
+  \end{itemize}
+
+\end{frame}
+
+% 2)
+
+\begin{frame}[containsverbatim]
+  \frametitle{Security As Seen By Userland}
+
+  \begin{itemize}
+    \item
+      \code{HANDLE CreateEvent(LPSECURITY\_ATTRIBUTES, ...);}
+    \item
+      \code{HANDLE CreateMutex(LPSECURITY\_ATTRIBUTES, ...);}
+    \item
+      \code{HANDLE CreateFile(... , LPSECURITY\_ATTRIBUTES, ...);}
+    \item
+      \code{HANDLE CreateThread(LPSECURITY\_ATTRIBUTES, ...);}
+  \end{itemize}
+
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Security Lifecycle}
+
+  At login, every process(hence, every thread) gets an access token containing its SIDs.
+  When a thread requests access to an object, 2 passes algorithm:
+
+  \begin{itemize}
+    \item
+      first, if the thread's SID is found in a denying ACE, access is denied
+    \item
+      then, an intersection is done between the requested permissions and the allowing ACEs permission
+  \end{itemize}
+\end{frame}
+
+% 4)
+
+\begin{frame}
+  \frametitle{Insecurity of Windows NT}
+
+  While NT core pieces were designed to be secure, \term{conceptual} and \term{implementation}
+  holes remain, making the whole kernel unsecure. Most of the kernel exploitable bugs come from:
+
+  \begin{itemize}
+    \item
+      old and unmaintained code. For instance, the graphical user interface is implemented as a kernel driver
+    \item
+      NT programming model complexity. Many security issues found in third party drivers
+  \end{itemize}
+
+\end{frame}
+
+
+%
+% IO Manager
+%
+
+\section{IO Manager}
+
+% 1
+
+\begin{frame}
+ \frametitle{Role}
+ \begin{itemize}
+  \item
+    management of communication between drivers
+ \end{itemize}
+\end{frame}
+
+% 2
+
+\begin{frame}
+ \frametitle{Model}
+ \begin{itemize}
+  \item
+    based on IO request packets (IRPs)
+  \item
+    layered model
+  \item
+    fully asynchronous
+ \end{itemize}
+\end{frame}
+
+% 3
+
+\begin{frame}
+ \frametitle{Packet based communication}
+ \begin{itemize}
+  \item
+    once sent to a device driver, an IRP walks the stack down
+  \item
+    at the end of the stack, completion routines are called in order
+  \item
+    not as in a microkernel
+    \begin{itemize}
+      \item
+        every driver is in the same address space (kernel)
+      \item
+        not designed for isolation, but modularity
+    \end{itemize}
+  \item
+    GUI layer does not fit this model
+ \end{itemize}
+\end{frame}
+
+% 4
+
+\begin{frame}
+ \frametitle{Layered model}
+ \begin{itemize}
+   \item
+     device drivers are linked together, forming driver stacks
+   \item
+     a stack models the way IO processing occurs
+   \item
+     nodes can be dynamically added or removed
+     \begin{itemize}
+       \item
+         allow for dynamic stackable filesystems, VPNs, ciphering solutions
+     \end{itemize}
+ \end{itemize}
+\end{frame}
+
+% 5
+
+\begin{frame}
+ \frametitle{Asynchronous model}
+ \begin{itemize}
+   \item
+     the IRP can be pend at any stage of the processing
+   \item
+     asynchronous IOs trivially implemented in the userland
+     \begin{itemize}
+       \item
+         in fact, blocking IOs are implemented on top of AIOs since the very beginning
+     \end{itemize}
+ \end{itemize}
+\end{frame}
+
+
+
+%
+% Programming For Windows NT
+%
+
+\section{Programming For Windows NT}
+
+% 1
+
+\begin{frame}
+  \frametitle{Windows Driver Model}
+
+ This section introduces building blocks used to implement NT device drivers. \\
+ It covers the following topics:
+ \begin{itemize}
+ \item
+   driver model
+ \item
+   execution
+ \item
+   io
+ \item
+   synchronization
+ \item
+   memory 
+ \item
+   development tools
+ \end{itemize}
+
+\end{frame}
+
+% 2
+
+\begin{frame}[containsverbatim]
+ \frametitle{Driver model - 1}
+
+ Drivers have to implement a documented interface
+
+ \begin{itemize}
+  \item exported entry point
+
+  \begin{verbatim}
+   NTSTATUS DriverEntry(PDRIVER_OBJECT, PUNICODE_STRING) { ... }
+  \end{verbatim}
+
+  \item unload routine
+   \begin{verbatim}
+    DriverObject->DriverUnload = DriverUnload;
+   \end{verbatim}
+
+  \item A driver serves IO requests by filling a table of function pointers
+   \begin{verbatim}
+    DriverObject->MajorFunction[IRP_MJ_READ] = myDeviceRead;
+   \end{verbatim}
+
+  \item fast IO routines
+  \begin{itemize}
+   \item bypass the dispatch table for improved performances
+   \item used only by file systems
+  \end{itemize}
+
+ \end{itemize}
+
+\end{frame}
+
+% 3
+
+\begin{frame}
+ \frametitle{Driver model - 2}
+
+ Drivers instanciate one object per device
+
+ \begin{itemize}
+  \item \code{IoCreateDevice()}
+  \item device object visible in the object namespace
+  \item can be opened from userland to retrieve a handle
+ \end{itemize}
+
+ Once instantiated, device object is inserted into a stack
+
+ \begin{itemize}
+  \item stack example
+   \begin{itemize}
+    \item socket (afd.sys)
+    \item TDI (tdi.sys)
+    \item TCPIP (tcpip.sys)
+    \item NDIS (ndis.sys)
+    \item ethernet controller (rtle8023.sys)
+   \end{itemize}
+
+ \end{itemize}
+
+\end{frame}
+
+% 4
+
+\begin{frame}
+ \frametitle{Execution primitives - 1}
+
+ Thread objects
+
+ \begin{itemize}
+  \item \code{KeXxxThread} routines
+  \item no actual difference between user and system threads
+  \item system thread address space is the kernel one
+ \end{itemize}
+
+\end{frame}
+
+% 5
+
+\begin{frame}
+ \frametitle{Execution primitives - 2}
+
+ Asynchronous Procedure Calls (APCs)
+
+ \begin{itemize}
+  \item \code{KeXxxApc} routines
+  \item used by the kernel to implement the asynchronous io model as seen by the userland
+  \item per thread APC queue, routine executed in the thread context
+  \item userland thread must be alertable
+  \item scheduled as the thread returns from kernel
+ \end{itemize}
+
+\end{frame}
+
+% 6
+
+\begin{frame}
+ \frametitle{Execution primitives - 3}
+
+ Deferred Procedure Calls (DPCs)
+
+ \begin{itemize}
+  \item \code{KeXxxDpc} routines
+  \item one DPC queue for the entire system
+  \item executed when the irql drops below \code{DISPATCH\_LEVEL}
+ \end{itemize}
+
+\end{frame}
+
+% 7
+
+\begin{frame}
+ \frametitle{IO programming - 1}
+
+ Every cpu has an Interrupt Request Level (IRQL)
+
+ \begin{itemize}
+  \item \code{KeXxxIrql} routines
+  \item hardware level a cpu is operating at
+  \item do not confuse with thread priorities
+  \item implemented in software on most architecture
+  \item levels lower than the current one are masked off
+ \end{itemize}
+
+\end{frame}
+
+% 8
+
+\begin{frame}
+ \frametitle{IO programming - 2}
+
+ Common IRQLs (from lower to higher)
+
+ \begin{itemize}
+  \item \code{PASSIVE\_LEVEL}: user threads, most kernel mode operations
+  \item \code{APC\_LEVEL}: APCs, page fault
+  \item \code{DISPATCH\_LEVEL}: thread scheduler, DPCs
+  \item \code{DEVICE\_INTERRUPT\_LEVEL}(DIRQL): device interrupts
+ \end{itemize}
+
+\end{frame}
+
+% 9
+
+\begin{frame}
+ \frametitle{IO programming - 3}
+
+ Requesting a device object
+
+ \begin{itemize}
+  \item \code{IoCallDriver(DeviceObject, Irp);}
+ \end{itemize}
+
+\end{frame}
+
+% 10
+
+\begin{frame}
+ \frametitle{IO programming - 4}
+
+ Userland communication
+
+ \begin{itemize}
+  \item \code{NtDeviceIoControl}
+  \item different buffering modes based on the control code
+  \item user address validation
+  \begin{itemize}
+   \item common source for kernel vulnerabilities
+   \item \code{ProbeForRead()}, \code{ProbeForWrite()}
+   \item \code{\_try / \_except} blocks
+  \end{itemize}
+ \end{itemize}
+
+\end{frame}
+
+% 11
+
+\begin{frame}
+ \frametitle{IO programming - 5}
+
+ Handling interrupts
+
+ \begin{itemize}
+  \item \code{KeXxxInterrupt} routines
+
+  \item connect to interrupt vector, possibly shared
+   \begin{itemize}
+   \item \code{IoConnectInterrupt(IsrRoutine)}
+  \end{itemize}
+
+  \item bottom / top halves model
+  \begin{itemize}
+   \item isr performs the small work (read or write registers...)
+   \item isr then schedule a DPC with \code{IoRequestDpc()} and returns
+   \item dpc completes the interrupt processing
+  \end{itemize}
+
+ \end{itemize}
+
+\end{frame}
+
+% 12
+
+\begin{frame}
+ \frametitle{Concurrency and synchronization - 1}
+
+ Spinlock
+
+ \begin{itemize}
+  \item \code{KeXxxSpinLock} routines
+  \item on up systems, irql raised to \code{DISPATCH\_LEVEL}
+  \item on mp systems, same as above plus loop until acquired
+ \end{itemize}
+
+\end{frame}
+
+% 13
+
+\begin{frame}
+ \frametitle{Concurrency and synchronization - 2}
+
+ Mutexes
+
+ \begin{itemize}
+  \item implemented at scheduler level
+  \item costly, but blocking calls allowed while held
+  \item use fast mutexes for better performance
+  \begin{itemize}
+   \item \code{ExAcquireFastMutex()}, \code{ExReleaseFastMutex()}
+   \item atomic test, fast for first owner
+   \item event queue otherwise
+  \end{itemize}
+ \end{itemize}
+
+\end{frame}
+
+% 14
+
+\begin{frame}
+ \frametitle{Concurrency and synchronization - 3}
+
+ Shared resources
+
+ \begin{itemize}
+  \item \code{ExAcquireResourceSharedLite()}, \code{ExAcquireResourceExclusiveLite()}
+  \item single writer, multiple readers
+  \item recurrent pattern in most data structure
+ \end{itemize}
+
+\end{frame}
+
+% 15
+
+\begin{frame}
+ \frametitle{Concurrency and synchronization - 4}
+
+ \code{InterlockedXXX} routines
+
+ \begin{itemize}
+  \item \code{InterlockedCompareExchange} (compare and swap)
+  \item implemented in hardware whenever possible
+  \item allow for efficient, non blocking data structure implementation
+  \item \code{ExInterlockedPushEntryList()}
+ \end{itemize}
+
+\end{frame}
+
+% 16
+
+\begin{frame}
+ \frametitle{Concurrency and synchronization - 5}
+
+ Choosing the right synchronization primitive is very important
+
+ \begin{itemize}
+  \item highly impacts on the overall system performance
+  \item even more important in mp systems
+ \end{itemize}
+
+\end{frame}
+
+% 17
+
+\begin{frame}
+ \frametitle{Memory - 1}
+
+ Kernel virtual memory allocator
+
+ \begin{itemize}
+  \item \code{ExAllocatePool} functions family
+
+  \item PagedPool
+  \begin{itemize}
+   \item may page fault on access
+   \item thus may need a disk io to be served
+   \item thus may block
+   \item thus must not be accessed at \code{DISPATCH\_LEVEL}
+   \item for instance, when a spinlock is held
+  \end{itemize}
+
+  \item NonPagedPool
+  \begin{itemize}
+   \item can be accessed at any IRQL
+  \end{itemize}
+
+ \end{itemize}
+
+\end{frame}
+
+% 18
+
+\begin{frame}
+ \frametitle{Memory - 2}
+
+ Physical memory
+
+ \begin{itemize}
+  \item \code{MmAllocatePagesForMdl}
+  \item return a descriptor for further virtual access
+ \end{itemize}
+
+\end{frame}
+
+% 19
+
+\begin{frame}
+ \frametitle{Development tools - 1}
+
+ Windows Driver Kit (WDM)
+
+ \begin{itemize}
+  \item collection of .h and .lib for driver development
+  \item driver samples
+ \end{itemize}
+
+\end{frame}
+
+% 20
+
+\begin{frame}
+ \frametitle{Development tools - 2}
+
+ Windows Research Kit (WRK)
+
+ \begin{itemize}
+  \item kernel and tools source code
+  \item design books (from the 90s)
+ \end{itemize}
+
+\end{frame}
+
+% 21
+
+\begin{frame}
+ \frametitle{Development tools - 3}
+
+ Debugging
+
+ \begin{itemize}
+
+  \item Windows debugging tools
+  \begin{itemize}
+   \item windbg 
+   \item dbgview
+  \end{itemize}
+
+  \item Windows symbol packages
+
+  \item Driver verifier
+   \begin{itemize}
+    \item allows for runtime checks of common errors
+    \item creates exceptionnal conditions
+    \item fault injection
+   \end{itemize}
+  \item
+
+ \end{itemize}
+
+\end{frame}
+
+% 22
+
+\begin{frame}
+ \frametitle{Development tools - 4}
+
+ Other tools
+
+ \begin{itemize}
+  \item DriverLoader (osronline)
+  \item DeviceTree (osronline)
+ \end{itemize}
+\end{frame}
+
+% 23
+
+\begin{frame}
+ \frametitle{References}
+
+ \begin{itemize}
+  \item http://www.microsoft.com/whdc
+  \item http://osronline.com
+  \item http://msdn.microsoft.com/en-us/library/aa972908.aspx
+  \item Microsoft Windows Internals, Fourth Edition
+  \item http://channel9.msdn.com/shows/Going+Deep/Dave-Probert-Inside-Windows-7-User-Mode-Scheduler-UMS/
+ \end{itemize}
+
+\end{frame}
+
+\end{document}

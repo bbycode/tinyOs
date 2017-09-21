@@ -1,0 +1,9 @@
+name: core/timer/precision/03
+description: This test sets up a timer a verifies the extreme precision of the timer.
+symbol: test_core_timer_precision_03
+signature: ti20e9wfc20392
+output:
+points: 5
+timeout:
+  qemu: 12
+  xen: 3

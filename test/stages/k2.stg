@@ -1,0 +1,26 @@
+#
+# ---------- header -----------------------------------------------------------
+#
+# project       kaneton
+#
+# license       kaneton
+#
+# file          /home/mycure/kaneton/test/stages/k2.stg
+#
+# created       julien quintard   [tue nov  2 06:01:29 2010]
+# updated       julien quintard   [tue apr 19 14:25:51 2011]
+#
+
+name: k2
+description: This stage evaluates the kaneton's memory management.
+configurations:
+  - name: Xen
+    platform: ibm-pc
+    architecture: ia32/educational
+    environments:
+      construct: xen
+      stress: xen
+    suite: k2
+    weight: 1.0
+deadline: "2011/04/10 12:00:00"
+history: "%school%/%year%/%group%/sources/k2.tar.bz2"

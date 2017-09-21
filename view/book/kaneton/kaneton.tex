@@ -1,0 +1,100 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/book/kaneton/kaneton.tex
+%
+% created       julien quintard   [mon may 14 19:56:45 2007]
+% updated       julien quintard   [mon jan 31 14:28:15 2011]
+%
+
+%
+% ---------- setup ------------------------------------------------------------
+%
+
+%
+% path
+%
+
+\def\path{../..}
+
+%
+% template
+%
+
+\input{\path/template/book.tex}
+
+%
+% header
+%
+
+\lhead{\scriptsize{The kaneton microkernel}}
+
+%
+% title
+%
+
+\title{The kaneton microkernel \\
+       \version
+       \logo}
+
+%
+% document
+%
+
+\begin{document}
+
+%
+% title
+%
+
+\maketitle
+
+%
+% --------- text --------------------------------------------------------------
+%
+
+This document describes the kaneton microkernel research project design
+and implementation.
+
+\-
+
+This document should be used by every student willing implement the
+kaneton educational microkernel as well as by people looking for more
+details on the kaneton microkernel design and implementation.
+
+\-
+
+All the kaneton documents are available on
+the official website
+  \footnote{\location{http://kaneton.opaak.org}}.
+
+%
+% table of contents
+%
+
+\tableofcontents
+
+%
+% indentation
+%
+
+\indentation{}
+
+%
+% chapters
+%
+
+\input{introduction.tex}
+\input{background.tex}
+\input{goals.tex}
+\input{design.tex}
+\input{implementation.tex}
+\input{portability.tex}
+\input{boot.tex}
+\input{licenses.tex}
+
+\end{document}

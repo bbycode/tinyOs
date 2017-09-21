@@ -1,0 +1,9 @@
+name: core/segment/permissions/05
+description: This test reserves segments, writes and copies data before releasing everything.
+symbol: test_core_segment_permissions_05
+signature: riafe93gh09i4h
+output:
+points: 3
+timeout:
+  qemu: 4
+  xen: 3

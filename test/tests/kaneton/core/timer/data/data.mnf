@@ -1,0 +1,9 @@
+name: core/timer/data
+description: This test sets up a timer and verifies that the timer is triggered once.
+symbol: test_core_timer_data
+signature: weojrgfq290349
+output:
+points: 2
+timeout:
+  qemu: 12
+  xen: 3

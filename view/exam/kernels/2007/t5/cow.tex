@@ -1,0 +1,187 @@
+\section*{Exercice 4 : Copy-On-Write (7 points)}
+
+{\bf Rappel :}
+
+Le copy-on-write est une astuce d'optimisation tr\`es utilisée dans
+les noyaux modernes dont le principe est le suivant.
+
+Lorsqu'on clone un espace d'adressage (par exemple dans le cas d'un appel système
+\emph{fork}), les zones réservées en mémoire physique ne sont pas
+dupliquées. Seules les correspondances (mappings) entre la mémoire
+virtuelle et la mémoire physique sont recopiées.
+
+Par la suite, c'est uniquement lors d'une écriture dans une zone
+mémoire que le segment de mémoire physique est recopié (pour qu'il y
+en ait un exemplaire par espace d'adressage).
+
+Dans cet exercice, nous simplifions le problème en considérant
+qu'\textbf{un espace d'adressage ne pourra être dupliqué qu'une unique
+fois}.\\
+
+\begin{description}
+\item {\bf A - Implémentation du gestionnaire de page-fault (5.5 points)}
+
+\begin{enumerate}
+\item Comment faut-il modifier les objets {\em o\_as}, {\em o\_segment} et
+{\em o\_region} si l'on veut impl\'ementer le copy-on-write dans kaneton ?\\
+\item Quels autres changements devrez-vous effectuer dans les fonctions
+de l'interface kaneton  pour prendre en compte ou remplir les champs ajoutés.\\
+
+\begin{correction}
+
+Il faut ajouter aux objets \emph{o\_segment} un compteur de
+réference. Ce dernier sera mis à 0 lors de \emph{segment\_reserve} et
+incremente et decremente lorsqu'une region sera reservée ou
+libérée. Un \emph{segment\_release} n'aura d'effet que si ce compteur
+de réference est à 0.
+
+Nous aurons aussi besoin de préciser dans l'objet segment les
+identifiants des 2 regions (et leur address space respectifs) qui se
+partagent le segment.
+
+En ce qui concerne les regions, nous allons ajouter dans
+\emph{o\_region} un booléen indiquant si la region est en
+copy-on-write. Ce booléen sera mis à 0 par \emph{region\_reserve}, et
+mis a un par \emph{as\_clone} lors du clonage de la region. Cette
+dernière fonction ne fera plus appel à \emph{segment\_clone} pour
+dupliquer la mémoire physique.
+
+\end{correction}
+
+\item \'Ecrivez le code du gestionnaire de page-fault. Vous pouvez employer
+toutes les fonctions de l'interface kaneton. Votre code doit être {\bf indépendant
+de l'architecture}.\\
+\\
+{\bf Note:} si votre code n\'ecessite une partie dépendante de
+l'architecture (pour mettre à jour des TLB par exemple), vous
+pr\'eciserez \textbf{sans l'implémenter} le comportement de ce code.
+
+Le prototype du gestionnaire de page-fault est le suivant :\\
+\\
+{\bf page\_fault}({\em i\_as asid, t\_vaddr address, t\_bool is\_write\_fault)}\\
+\begin{itemize}
+\item \emph{asid} : identifiant de l'espace d'adressage sur lequel s'est
+  produite l'erreur.
+\item \emph{address} : adresse virtuelle ayant provoqué l'erreur.
+\item \emph{is\_write\_fault} : indique si l'erreur est d\^ue à une tentative
+  d'écriture à une adresse marquée en lecture seule.\\
+\end{itemize}
+
+\begin{correction}
+
+\begin{verbatim}
+void          page_fault(i_as asid, t_vaddr address, t_bool is_write_fault)
+{
+  if (is_write_fault)
+  {
+    o_as*       as;
+    t_iterator  it;
+
+    as_get(asid, &as);
+
+    /* look through all the regions */
+    set_foreach(as->regions, it)
+    {
+      o_region*   region;
+
+      set_object(as->regions, it, &region);
+
+      /* is this the corresponding region ? */
+      if (region->address <= address &&
+          region->address + region->size > address)
+      {
+        o_region*   original;
+        o_segment*  segment;
+
+        if (!region->cow)
+          /* SIGSEGV, not COW, probably permission problem */
+
+        /* update the objects */
+        segment_get(region->segid, &segment);
+        segment->refcount--;
+        if (segment->reg1 == region->regid)
+          region_get(segment->as2, segment->reg2, &original);
+        else
+          region_get(segment->as1, segment->reg1, &original);
+        original->cow = region->cow = 0;
+
+        /* clone the segment */
+        segment_clone(asid, region->segid, &region->segid);
+        segment_get(region->segid, &segment);
+        segment->refcount = 1;
+
+        /* architecture specific, update TLB */
+      }
+    }
+  }
+  else
+    /* SIGSEGV */
+}
+\end{verbatim}
+
+Le code dépendant doit mettre-à-jour les structures utilisées par la
+MMU : page-directory \& page-table sur Intel, entrées TLB sur MIPS,
+etc\ldots{} en fonction de la nouvelle adresse physique du segment
+(recopié) associé à la region clonée, mais aussi des permissions
+(remise des droits en écriture !).
+
+\end{correction}
+
+\end{enumerate}
+
+\item {\bf B - Question de cours (1.5 points)}
+
+\begin{enumerate}
+\item Expliquez les diff\'erences et les points communs entre le Copy-On-Write
+et l'Allocation-On-Demand.\\
+
+\begin{correction}
+
+Le copy-on-write et l'allocation-on-demand sont deux astuces pour
+améliorer la gestion de la mémoire en minimisant le nombre de page
+physique allouées.
+
+Les deux techniques se basent sur la génération volontaire de
+page-fault. Alors que le premier utilise le marquage lecture-seule
+d'une entrée TLB, le second repose sur l'absence d'une entrée.
+
+Alors que le copy-on-write recopie les pages partagées mais déjà
+existantes lors de leur premiere modification, l'allocation à la
+demande alloue les pages physique lors de leur premier accès.
+
+\end{correction}
+
+\end{enumerate}
+
+\item {\bf C - Implémentation sans limitations (bonus)}
+
+\begin{enumerate}
+\item En quoi le cas ou un espace d'adressage peut être dupliqué plusieurs
+fois est-il plus complexe à gérer ?
+
+\item Proposez les modifications pour gérer le copy-on-write quelque soit le
+nombre de clonages d'un espace d'adressage.
+
+\begin{correction}
+
+Il est plus délicat de gérer un nombre illimité de clonage d'espace
+d'adressage car il y a plus de cas particuliers à gérer : clonage
+d'une region déjà en copy-on-write, double clonage d'un même espace
+d'adressage (et donc de toutes ses regions déjà en
+copy-on-write)\ldots{} et le gestionnaire de page-fault devient lui
+aussi plus compliqué du fait qu'une region en copy-on-write à laquelle
+on accède en écriture pour la première fois engrendre toujours le
+clonage du segment mais une mise-à-jour différente des autres regions
+qui partagent le segment.
+
+Nous allons devoir ajouter à l'objet \emph{o\_segment} un set pour
+lister toutes les regions qui doivent recopier à l'écriture ce
+segment. Dans le gestionnaire de page-fault, le cas ou ce set ne
+compte que deux éléments revient au cas actuel. En revanche, si plus
+de deux éléments sont présents, alors il ne faut pas mettre à jour le
+booléen \emph{cow} ni rétablir les droits en écriture sur ces regions.
+
+\end{correction}
+
+\end{enumerate}
+\end{description}

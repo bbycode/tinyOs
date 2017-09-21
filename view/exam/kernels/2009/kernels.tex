@@ -1,0 +1,342 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/exam/kernels/2009/kernels.tex
+%
+% created       julien quintard   [mon may 14 21:56:41 2007]
+% updated       julien quintard   [mon jun  8 22:38:59 2009]
+%
+
+%
+% ---------- setup ------------------------------------------------------------
+%
+
+%
+% path
+%
+
+\def\path{../../..}
+
+%
+% template
+%
+
+\input{\path/template/exam.tex}
+
+%
+% title
+%
+
+\title{Noyaux et Syst\`emes d'Exploitation}
+
+%
+% header
+%
+
+\lhead{\scriptsize{EPITA\_ING2 - 2010\_S4 - NSE - Julien Quintard}}
+\rhead{}
+
+%
+% document
+%
+
+\begin{document}
+
+%
+% title
+%
+
+\maketitle
+
+%
+% identation
+%
+
+\indentation{}
+
+%
+% --------- information -------------------------------------------------------
+%
+
+\begin{center}
+
+\textbf{Documents Interdits}
+
+\textbf{Dur\'ee 3 heures}
+
+\scriptsize{Une copie bien pr\'esent\'ee sera toujours mieux not\'ee
+            qu'une autre.}
+
+\end{center}
+
+%
+% --------- text --------------------------------------------------------------
+%
+
+%
+% boot
+%
+
+\section{Boot
+         {\hfill{} \normalfont{\scriptsize{1 point}}}}
+
+D\'ecrivez rapidement les \'etapes principales effectu\'ees par un
+\name{bootloader}.
+
+\begin{correction}
+
+Un bootloader commence par localiser l'image du noyau du syst\`eme
+d'exploitation qu'il doit d\`emarrer. Cette image peut \^etre stock\'ee sous
+diff\'erentes formes (fichier dans un filesystem, donn\'ees brutes sur un
+p\'eriph\'erique de stockage, image t\'el\'echargable par le r\'eseau, \ldots.
+Une fois l'image localis\'ee, il doit la charger en m\'emoire. Le format de
+l'image peut \^etre tr\`es vari\'e, il peut s'agir d'un binaire ELF, d'un
+ex\'ecutable PE, d'un dump brut de la m\'emoire, \ldots.
+Une fois le noyau charg\'e en m\'emoire, le bootloader transf\`ere
+l'ex\'ecution sur le point d'entr\'ee du noyau.
+
+\end{correction}
+
+%
+% memoire virtuelle
+%
+
+\section{M\'emoire virtuelle
+         \normalfont{{\hfill{} \scriptsize{2 point}}}}
+
+D\'ecrivez succintement en quoi consiste la notion de m\'emoire virtuelle, et
+quels sont les avantages de ce m\'ecanisme.
+
+\begin{correction}
+
+La m\'emoire virtuelle consiste \`a s\'eparer les adresses manipul\'ees par les
+programmes des adresses physiques. Cela permet entre autres :
+\begin{itemize}
+\item D'ex\'ecuter plusieurs t\^aches sur une m\^eme machine sans que les
+t\^aches ne doivent \^etre compil\'ees (link\'ees) sp\'ecifiquement, en
+fonction des autres t\^aches.
+\item De prot\'eger les t\^aches s'ex\'ecutant au sein de la machine, chaque
+t\^ache ayant son propre espace d'adressage, et ne pouvant donc en aucun cas
+acc\'eder aux emplacements m\'emoire des autres t\^aches.
+\item D'\'etendre virtuellement la m\'emoire physique gr\^ace aux
+p\'eriph\'eriques de stockage, gr\^ace au m\'ecanisme de swap.
+\end{itemize}
+
+\end{correction}
+
+%
+% segmentation et pagination
+%
+
+\section{Segmentation et Pagination
+         \normalfont{{\hfill{} \scriptsize{3 points}}}}
+
+Pour chacun des deux principaux m\'ecanismes de m\'emoire virtuelle,
+d\'ecrivez bri\`evement son fonctionnement g\'en\'eral.
+
+Vous ferez attention \`a ne pas d\'ecrire des choses propres \`a
+l'architecture \name{ia32}, seul le concept g\'en\'eral est
+demand\'e.
+
+\begin{correction}
+
+La segmentation consiste \`a diviser la m\'emoire physique en segments. Un
+segment est d\'efini par une adresse de base et une taille. Le syst\`eme
+d'exploitation maintient une liste de segments. Lorsque le processeur manipule
+une adresse virtuelle, il va chercher dans un registre sp\'ecial, le segment
+selector, quel segment utiliser. Il va ensuite additionner l'adresse virtuelle
+avec l'adresse de base du segment, et v\'erifier que l'adresse virtuelle est
+inf\'erieure \`a la taille du segment. Le r\'esultat de l'addition d\'etermine
+l'adresse physique.\\
+
+La pagination consiste \`a diviser la m\'emoire physique en un grand nombre de
+zones de taille identique, appel\'ees pages. Une adresse virtuelle sera
+d\'ecoup\'ee en 2 parties, la premi\`ere servant \`a identifier la page, et la
+deuxi\`eme servant d'offset au sein de la page. Le syst\`eme d'exploitation
+maintient une structure qui fait la correspondance entre une adresse virtuelle
+de base d'une page, et son adresse en m\'emoire physique. Lors d'un acc\`es
+m\'emoire, la MMU interroge son cache, par l'interm\'ediaire des TLB. Si la
+correspondance n'est pas trouv\'ee au sein des TLB, la MMU g\'en\`ere une
+exception pour que le syst\`eme d'exploitation puisse r\'esoudre la
+correspondance et remplir le cache correctement, afin que la MMU puisse,
+apr\`es que l'OS ait r\'esum\'e, r\'ealiser l'acc\`es en m\'emoire physique.
+
+\end{correction}
+
+%
+% peripheriques
+%
+
+\subsection{P\'eriph\'eriques
+            \normalfont{{\hfill{} \scriptsize{4 points}}}}
+
+La platforme---processeur et chipset---met \`a disposition plusieurs
+m\'ecanismes pour communiquer avec les p\'eriph\'eriques.
+
+D\'ecrivez ces m\'ecanismes puis donnez des exemples d'utilisation de
+chacun d\'entre eux.
+
+\begin{correction}
+
+XXX
+
+\end{correction}
+
+%
+% virtualisation
+%
+
+\section{Virtualisation
+         \normalfont{{\hfill{} \scriptsize{2 points}}}}
+
+Quelle est la diff\'erence entre un \name{hyperviseur}
+type 1 et type 2 ?
+
+\begin{correction}
+
+XXX
+
+\end{correction}
+
+% 
+% securite
+%
+
+\section{S\'ecurit\'e
+         \normalfont{{\hfill{} \scriptsize{4 points}}}}
+
+Un service d\'esire fournir \`a certains clients la possibilit\'e
+d'effectuer des op\'erations via l'utilisation de \name{capabilities}.
+
+\'Etant donn\'e que le service ne g\`ere aucun objet mais propose
+aux clients d'effectuer un maximum de $13$ op\'erations diff\'erentes,
+veuillez d\'efinir le format des \name{capabilities} \`a utiliser en
+d\'ecrivant la taille et l'utilit\'e de chaque champ.
+
+Enfin, vous d\'etaillerez le processus de v\'erification effectu\'e
+par le service en question.
+
+\begin{correction}
+
+Consid\'erant un syst\`eme d'exploitation non r\'eparti, un champ sera
+utilis\'e pour identifi\'e le service en question, un \texttt{i\_task}
+sur $64$ bits par exemple. Un champ de $13$ bits sera utilis\'e pour
+d\'ecrire les $13$ op\'erations autoris\'ees. Enfin, un champ \name{Check}
+de $64$ bits, par exemple, sera utilis\'e pour s\'ecuriser la
+\name{capability}.
+
+Le processus de v\'erification consiste \`a r\'ecup\'erer le \name{Check}
+d'origine \`a partir d'une structure interne au service, \`a appliquer un
+\name{XOR} entre le \name{Check} d'origine et le champ \name{Operations}
+de la \name{capability} re\c{c}ue pour enfin appliquer une fonction
+\`a sens unique. Il suffit finalement de comparer le r\'esultat avec le
+champ \name{Check} contenu dans la \name{capability}. Si ils sont
+\'egaux, alors la \name{capability} est valide.
+
+\end{correction}
+
+%
+% windows nt
+%
+
+\section{Windows NT
+         \normalfont{{\hfill{} \scriptsize{4 points}}}}
+
+Dans un texte structur\'e, d\'ecrivez les principes fondamentaux autour
+desquels le noyau \name{NT} a \'et\'e con\c{c}u. En particulier, vous
+\'enoncerez de mani\`ere claire les probl\'ematiques cibl\'ees par ce type de
+noyau, puis vous mettrez l'accent sur les r\'eponses apport\'ees par \name{NT}
+et son design.
+
+Lorsque cela s'av\`ere pertinent, vous incluerez des d\'etails d'implantation.
+\`A titre d'exemple, des comparaisons pourront \^etre faites avec d'autres
+noyaux existants, tels que \name{Linux}.
+
+\begin{correction}
+
+Le noyau \name{NT} est con\c{c}u et d\'{e}velopp\'{e} au d\'{e}but des ann\'{e}es
+1990 par une \'{e}quipe dirig\'{e}e par \name{Dave Cutler} (\name{DEC, VMS}). C'est
+un noyau monolithique qualifi\'{e} par certains d'hybride du fait de la communication
+par messages entre les drivers. Tous les drivers partagent le m\^{e}me espace d'adressage,
+ce qui le diff\'{e}rencie donc d'un micronoyau. Le choix d'une communication par message
+r\'{e}pond ainsi \`{a} une probl\'{e}matique de modularit\'{e}, et non d'isolation.
+
+Depuis sa cr\'{e}ation, les aspects fondamentaux du noyau n'ont pas chang\'{e}
+malgr\'{e} l'\'{e}volution des architectures: passage au multiprocesseur, multiplication
+des resources \`{a} g\'{e}rer (plus de devices, plus de fichiers ouverts)... Ceci est
+en quelque sorte la preuve de la flexibilit\'{e} du design, qui s'articule autour des
+points suivants:
+
+\begin{itemize}
+  \item
+    Mod\`{e}le d'IO asynchrones: le noyau g\`{e}re toutes les IOs de mani\`{e}re
+    asynchrone. De ce fait, l'appel \`{a} une fonction synchrone (ie. \name{WriteFile})
+    est implement\'{e} par dessus ce mod\`{e}le. L'int\'{e}r\^{e}t principal d'un
+    mod\`{e}le asynchrone est de permettre l'ex\'{e}cution de code li\'{e} au cpu
+    (\name{cpu bound}) en parall\`{e}le de l'attente de la completion d'une IO
+    (\name{io bound}). Par exemple, une solution de chiffrement peut maintenir une liste
+    de donn\'{e}es \`{a} chiffrer dans l'attente de la compl\'{e}tion d'une IO. On a de
+    cette mani\`{e}re une progression globale du syst\`{e}me.
+  \item
+    Mod\`{e}le de thread 1:1: Chaque thread utilisateur est repr\'{e}sent\'{e} par
+    un thread noyau. Puisque la programmation multithread\'{e}e est un mod\`{e}le
+    largement adopt\'{e} par les programmeurs, un mapping 1:1 permet de gagner en
+    performance en \'{e}vitant \`{a} un processus d'\^{e}tre bloqu\'{e} par un
+    thread dans l'attente de la compl\'{e}tion d'une IO.
+  \item
+    Mod\`{e}le orient\'{e} objet: Toute resource est manipul\'{e}e par le noyau
+    via une interface commune, celle d'objet. Cette interface comprend entre autre
+    les proc\'{e}dures d'ouverture, de fermeture et de securit\'{e}. Chaque type de
+    resource a un objet correspondant: \name{FILE\_OBJECT}, \name{DEVICE\_OBJECT},
+    \name{DRIVER\_OBJECT} ... Un programme utilisateur manipule tous les objets
+    par \name{HANDLE}.
+  \item
+    Le gestionnaire d'objet (\name{Object Manager}) centralise les aspects fondamentaux
+    li\'{e}s \`{a} la gestion des resources, \`{a} savoir:
+    \begin{itemize}
+      \item
+      Le nommage: la r\'{e}cup\'{e}ration d'une resource \`{a} partir d'un nom. Ce
+      nom est structur\'{e} de la m\^{e}me fa\c{c}on qu'un chemin dans un syst\`{e}me
+      de fichier. Il y a en g\'{e}n\'{e}ral un r\'{e}pertoire par type de resource,
+      et les liens symboliques sont support\'{e}s. C'est de cette facon qu'une lettre
+      (ie. \name{C:}) peut \^{e}tre li\'{e}e \`{a} un volume (ie. \name{/Device/HarddiskVolume0}).
+      \item
+      La recherche: la r\'{e}cup\'{e}ration de l'instance d'une resource \`{a} partir
+      d'un \name{HANDLE}.
+      \item
+      la s\'{e}curit\'{e}: lorsqu'un processus utilisateur effectue une operation sur
+      un objet (ie. ReadFile), le noyau doit valider cette operation. Pour ce faire,
+      la proc\'{e}dure de s\'{e}curit\'{e} associ\'{e}e au type d'objet sera invoqu\'{e}e,
+      et cela quel que soit le type d'objet. La fonction document\'{e}e est
+      \name{ObReferenceObjectByHandle}. Cela permet une gestion du contr\^{o}le d'acc\`{e}s
+      centralis\'{e}e et coh\'{e}rente, ce qui n'est pas le cas dans \name{Linux}.n
+    \end{itemize}
+  \item
+    Mod\`{e}le de driver en stack: Pour permettre l'interaction entre les differents
+    periph\'{e}riques, le noyau organise les drivers sous la forme de stack selon leur
+    relation. \`{A} cette fin, le gestionnaire d'IO expose deux primitives:
+    \begin{itemize}
+      \item
+      Une structure d\'{e}crivant les messages: \name{IRP} (Interrupt Request Packet),
+      \item
+      Une fonction de message passing: \name{IoCallDriver}.
+    \end{itemize}
+    De cette mani\`{e}re, des interactions dynamiques complexes peuvent etre modelis\'{e}es:
+    solutions de stockage, chiffrement de disque, piles r\'{e}seau, syst\`{e}mes de fichier
+    virtuels ...
+    Ce mod\`{e}le permet \`{a} des drivers propri\'{e}taires de cohabiter, pour autant que
+    chacun respecte l'ensemble des conventions impos\'{e}es, telles que le routage des
+    messages aux drivers sous jaccents ansi que leur compl\'{e}tion.
+\end{itemize}
+
+Aussi, il est important de noter la qualit\'{e} du kit de d\'{e}vloppement de driver pour
+\name{NT} (ie. \name{Windows Driver Kit}), ainsi que les outils associ\'{e}s: injection de
+faute, analyse dynamique d'erreurs communes lors de la conception d'un driver...
+
+\end{correction}
+
+\end{document}

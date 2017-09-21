@@ -1,0 +1,1609 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kane...ew/lecture/kernels/security/security.tex
+%
+% created       julien quintard   [fri oct 24 17:31:58 2008]
+% updated       julien quintard   [mon may 17 16:38:54 2010]
+%
+
+%
+% ---------- setup ------------------------------------------------------------
+%
+
+%
+% path
+%
+
+\def\path{../../..}
+
+%
+% template
+%
+
+\input{\path/template/lecture.tex}
+
+%
+% title
+%
+
+\title{Security}
+
+%
+% table of contents at the beginning of each section
+%
+
+\AtBeginSection[]
+{
+  \begin{frame}<beamer>
+    \frametitle{Outline}
+
+    \begin{multicols}{2}
+      \tableofcontents[current,hidesubsections]
+    \end{multicols}
+  \end{frame}
+}
+
+%
+% table of contents at the beginning of each subsection
+%
+
+\AtBeginSubsection[]
+{
+  \begin{frame}<beamer>
+    \frametitle{Outline}
+
+    \begin{multicols}{2}
+      \tableofcontents[current,hidesubsections]
+    \end{multicols}
+  \end{frame}
+}
+
+%
+% document
+%
+
+\begin{document}
+
+%
+% title frame
+%
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+%
+% outline frame
+%
+
+\begin{frame}
+  \frametitle{Outline}
+
+  \begin{multicols}{2}
+    \tableofcontents
+  \end{multicols}
+\end{frame}
+
+%
+% figures
+%
+
+\pgfdeclareimage[interpolate=true,width=180pt]
+                {amoeba-capability}
+                {figures/amoeba-capability}
+
+\pgfdeclareimage[interpolate=true,height=170pt]
+                {amoeba-attenuation}
+                {figures/amoeba-attenuation}
+
+%
+% ---------- text -------------------------------------------------------------
+%
+
+%
+% introduction
+%
+
+\section{Introduction}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  This course targets security in operating systems. As such, intra-kernel
+  security will not be discussed.
+
+  \-
+
+  This course will focus on describing techniques for controlling the access to
+  well-defined objects; these objects being created and managed by the kernel,
+  a server, a service or whatever independent entity.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Assumptions}
+
+  Obviously, providing security would not make much sense in an unsafe
+  system.
+
+  \-
+
+  The course therefore considers that the studied operating system
+  is safe enough so that security makes sense.
+
+  \-
+
+  More precisely, in systems such as critical, real-time \etc{},
+  ensuring safety would be far more important than providing access control
+  because without strong safety guarantees, security would not have any impact.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Topic}
+
+  Note that none of the following topics will be discussed throughout this
+  course as the focus is \term{access control}:
+
+  \-
+
+  \begin{itemize}
+    \item
+      Unit testing;
+    \item
+      Model checking;
+    \item
+      Secure architecture;
+    \item
+      Vulnerabilities;
+    \item
+      \etc{}
+  \end{itemize}
+\end{frame}
+
+%
+% overview
+%
+
+\section{Overview}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Why}
+
+  Controlling access to objects is quite obvious although it can be for
+  different reasons: privacy, security, accountability \etc{}
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{What}
+
+  The type of objects the system provides access control for varies from:
+
+  \begin{itemize}
+    \item
+      Files;
+    \item
+      Kernel data;
+    \item
+      Network accesses;
+    \item
+      Shared memory;
+    \item
+      Devices;
+    \item
+      \etc{}
+  \end{itemize}
+\end{frame}
+
+%
+% terminology
+%
+
+\section{Terminology}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Introduction}
+
+  This section aims at providing the student the vocabulary related to
+  access control, this terminology being the one used in the literature.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Subject/Initiator}
+
+  The \term{subject}/\term{initiator} represents the entity trying to access
+  an object.
+
+  \-
+
+  According to the security policy and the rights the subject has on the
+  object, the requested operation is granted or rejected.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Object/Target}
+
+  The \term{object}/\term{target} represents the information that is kept
+  from being seen from unauthorised subjects through a security policy.
+\end{frame}
+
+% 4)
+
+\begin{frame}
+  \frametitle{Policy}
+
+  The security \term{policy} defines a set a rules on which the
+  managers rely to decide whether or not an access is granted.
+\end{frame}
+
+% 5)
+
+\begin{frame}
+  \frametitle{Manager}
+
+  A \term{manager} represents an entity providing access to targets.
+
+  \-
+
+  Managers follow the rules defined by the security policy in use.
+
+  \-
+
+  In an operating system, the kernel is likely to be the only manager although
+  in microkernel-based operating systems, every server may also provide access
+  control.
+\end{frame}
+
+% 6)
+
+\begin{frame}
+  \frametitle{Operation}
+
+  The \term{operation} represents the action requested by a subject on
+  a target.
+
+  \-
+
+  The manager receiving the request checks whether the subject has the right
+  to perform this operation and acts accordingly.
+\end{frame}
+
+% 7)
+
+\begin{frame}
+  \frametitle{Example}
+
+  Let's take an example to put the terminology into use although this
+  example is not related to operating systems.
+
+  \-
+
+  On \name{Facebook}, users can decide to restrict their profile's access
+  being to friends, friends of friends, everyone \etc{}
+
+  \-
+
+  In such a context:
+
+  \begin{itemize}
+    \item
+      Users are initiators;
+    \item
+      Browsing your profile is the operation;
+    \item
+      Your profile is the target;
+    \item
+      \name{Facebook}'s website is the manager; and
+    \item
+      The security policy allows you to define who is authorised to access
+      your information.
+  \end{itemize}
+\end{frame}
+
+%
+% history
+%
+
+\section{History}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  This section is intended to give a glimpse of history to students.
+\end{frame}
+
+% multics
+
+\subsection{Multics}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  \name{\term{Multics} - Multiplexed Information and Computing Service}---
+  started in $1964$ by the \name{MIT}, \name{AT\&T Bell Labs} and
+  \name{General Electric}---was first released in $1969$.
+
+  \-
+
+  \name{Multics} was the first system to emphasize security from the
+  design perspective.
+
+  \-
+
+  In spite of this, \name{Multics} extreme complexity opened the way to many
+  security flaws.
+
+  \-
+
+  However, break-ins became very rare with the second generation of hardware
+  that enabled \term{ring-oriented} security.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Objectives}
+
+  The goals of \name{Multics} were to provide:
+
+  \begin{itemize}
+    \item
+      High availability; and
+    \item
+      Scalability, by adding resources such as main memory, storage capacity
+      \etc{};
+  \end{itemize}
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Security}
+
+  \name{Multics} achieved access control through the use of \name{ACL - Access
+  Control List}s on every file providing flexible information sharing and
+  complete privacy when required.
+
+  \-
+
+  Through such a technique, fine grained access control was provided to users,
+  which was quite revolutionary at the time.
+\end{frame}
+
+% cap computer
+
+\subsection{CAP Computer}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  The Cambridge \term{CAP Computer} was an experimental computer built
+  in the $1970$s at the \name{University of Cambridge, Computer Laboratory}.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Objectives}
+
+  The objective of this system was to provide complete security.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Security}
+
+  The \name{CAP Computer} achieved security through the use of capabilities
+  both in hardware and software.
+\end{frame}
+
+% unix
+
+\subsection{UNIX}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  \term{UNIX}, started in $1969$ with \name{UNIX-PDP7}, was developed by
+  \name{Ken Thompson} with the help of \name{Dennis Ritchie} as an alternative
+  to \name{Multics}.
+
+  \-
+
+  Although the first objective was to make a game run faster, \name{UNIX}
+  evolved to a complete operating system and was rewritten in \name{C}
+  in $1973$.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Objectives}
+
+  The goals of \name{UNIX} were to provide:
+
+  \begin{itemize}
+    \item
+      Portability;
+    \item
+      Multi-tasking;
+    \item
+      Multi-user interaction; and
+    \item
+      Time sharing.
+  \end{itemize}
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Security}
+
+  The \name{UNIX} operating system introduced the \name{``Everything is file''}
+  philosophy.
+
+  \-
+
+  \name{UNIX} also introduced a new access control scheme consisting of a
+  set of permissions for three types of entities: \name{user} which represents
+  the file owner, \name{group} which specifies the group the file belongs
+  to and \name{other} which represents everybody else.
+
+  \-
+
+  In addition, every set of permission is composed of three bits \name{rwx}
+  for \name{read}, \name{write} and \name{execution}.
+
+  \-
+
+  This scheme provided a perfect trade-off between the granularity on one
+  side and the size taken by access control metadata on the other side.
+\end{frame}
+
+% linux
+
+\subsection{Linux}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  \term{Linux} started in $1991$ by \name{Linus Torvalds} mainly based on
+  the \name{MINIX} operating system.
+
+  \-
+
+  \name{Linux} being a clone of \name{UNIX}, the access control scheme
+  remains based on the \name{UNIX} permissions.
+\end{frame}
+
+% windows
+
+\subsection{Windows}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  \term{Windows} did not provide any access control for the first versions
+  of its operating system mainly because there was no need for such control
+  since these versions of the operating system were mono-user.
+
+  \-
+
+  Starting with \name{Windows NT} \ie{} \name{Windows XP}, \name{Windows 2000}
+  \etc{}, every file was given an \name{Access Control List} manageable by
+  its owner.
+\end{frame}
+
+%
+% principles
+%
+
+\section{Principles}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  In this section, we define a few security principles:
+
+  \begin{enumerate}
+    \item
+      \term{Security Through Obscurity/Transparency};
+    \item
+      \term{Security Through Design}; and
+    \item
+      \term{Least Privilege}.
+  \end{enumerate}
+\end{frame}
+
+% security through obscurity/transparency
+
+\subsection{Security Through Obscurity/Transparency}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Bad/Good}
+
+  Security through obscurity is a principle which attempts to use secrecy of
+  design, implementation \etc{} to provide or enhance security.
+
+  \-
+
+  A system relying on security through obscurity may have theoretical or
+  actual security vulnerabilities, but its owners or designers believe that
+  the flaws are not known, and that attackers are unlikely to find them.
+
+  \-
+
+  Keeping details of the system secret does not make it more robust, but
+  indeed increases the effort an attacker has to put in order to find such
+  security flaws.
+
+  \-
+
+  The related security through transparency philosophy suggests that security
+  flaws should be disclosed as soon as possible.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Not too Bad/Good}
+
+  Assuming that perfect or ``unbroken'' solutions may be difficult to obtain
+  and that relying solely on security through obscurity is a very poor design
+  choice, keeping secret some of the details of an otherwise well-engineered
+  system may be a reasonable tactic of defense.
+
+  \-
+
+  For example, the goal might be to simply reduce the short-run risk of
+  exploitation of a vulnerability in the main components of the system while
+  a security fix is implemented.
+
+  \-
+
+  A variant, especially in computer networks, is to detect attackers trying
+  to identify potential security flaws. Since this stage is necessary, the
+  system can use it to detect and block attackers.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Conclusion}
+
+  All in all, there is a general consensus that security through obscurity
+  should never be used as a primary security measure.
+
+  \-
+
+  It is, at best, a secondary measure; and disclosure of the obscurity should
+  not result in a compromise.
+
+  \-
+
+  In contrary, domains such as cryptogragraphy rely on the
+  \name{full disclosure} philosophy so that, given everything but the
+  cryptographic key, the system remains secure.
+
+  \-
+
+  In conclusion, although the techniques stand in contrast with each other,
+  many real-world projects include elements of both strategies.
+\end{frame}
+
+% security by design
+
+\subsection{Security By Design}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  Security by design means that the software has been designed from the ground
+  up to be secure.
+
+  \-
+
+  Malicious practices are taken for granted and care is taken to minimize
+  impact when a security vulnerability is discoverd.
+
+  \-
+
+  The most common security design practice when it comes to user inputs is
+  to avoid buffer overflows and format string vulnerabilities for example.
+\end{frame}
+
+% least privilege
+
+\subsection{Least Privilege}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  The principle of least privilege requires that every module such as a
+  process, a user or a program must be able to access only the information
+  and resources that are necessary to its purpose.
+
+  \-
+
+  For example, in most operating systems such as \name{Linux} and
+  \name{Windows}, the file system code, running in \name{kernel mode}, has
+  maximum privileges; therefore there is no security enforcement.
+
+  \-
+
+  The same goes for code running in \name{kernel mode} when it comes to
+  accessing the hardware. The \name{CAP Computer} was the first system
+  to introduce access control at the hardware level.
+
+  \-
+
+  For example, a user $U$ with \name{read/write} access on a file
+  $F$ violates the least privilege principle if $U$ can complete his
+  tasks with only the \name{read} permission.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Mitigation}
+
+  Although the principle of least privilege is recognised as being a
+  good design principle, true least privilege is, in practice, complicated
+  to enforce.
+
+  \-
+
+  Indeed, there is no method to evaluate a process to define the least
+  amount of privilege it will ever need.
+
+  \-
+
+  Therefore, in practice, the best that can be done is to restrict the
+  privileges to eliminate some we casually predict that it will never need.
+
+  \-
+
+  For example, we know that \name{Notepad} should never access the network.
+
+  \-
+
+  In conclusion, this principle is theoretically very interesting but
+  difficult to put into practice.
+\end{frame}
+
+%
+% categories
+%
+
+\section{Categories}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  In this section, we briefly define the two categories of access control,
+  namely:
+
+  \begin{itemize}
+    \item
+      \name{\term{MAC} - Mandatory Access Control}; and
+    \item
+      \name{\term{DAC} - Discretionary Access Control}.
+  \end{itemize}
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{MAC}
+
+  In military and other high-security computer systems, a policy of
+  \name{\term{MAC} - Mandatory Access Control} is used for restricting the
+  dissemination of information
+
+  \-
+
+  Objects, such as files, are assigned \term{security labels} that restrict who
+  is allowed to access them.
+
+  \-
+
+  Users of the system are assigned \term{clearance levels} such that a user
+  with a clearance level of classified may read documents that are classified
+  and unclassified but not secret or top-secret. Interestingly, the same user
+  may actually create secret or top-secret documents without being able to
+  access them subsequently or a user may be able to read a less privileged
+  document without being able to modify it as it would lead to leaking
+  potential higher privileged information.
+
+  \-
+
+  Therefore, with \name{MAC}, the user does not have control over her own
+  documents. The system mandates who can read and write everything with the
+  objective to limit the dissemination of information.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{DAC}
+
+  Commercial operating systems like \name{UNIX} and \name{Windows} take a
+  totally different approach using \name{\term{DAC} - Discretionary Access
+  Control} by putting control of an object into the hands of the entity
+  that created it.
+
+  \-
+
+  Following this philosophy, the object's owner is implicity granted
+  permissions to read, write but also to administrate the permissions on
+  this file.
+
+  \-
+
+  Although many operating systems relying on \name{DAC} implement the concept
+  of user one way or another, the standard does not say anything about
+  owners making this notion theoretically distinguishable from \name{DAC}.
+\end{frame}
+
+% 4)
+
+\begin{frame}
+  \frametitle{Conclusion}
+
+  Although \name{MAC}-enabled systems allow policy administrators to
+  implement organization-wide security policies, systems can implement both
+  \name{MAC} and \name{DAC} simultaneously.
+
+  \-
+
+  In such a system for example, \name{DAC} would refer to one category of
+  access control where subjects can transfer permissions to one another.
+
+  \-
+
+  One the other side, \name{MAC} would refer to a second category of access
+  control that impose constraints upon the first.
+\end{frame}
+
+%
+% models
+%
+
+\section{Models}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  In this section, the different models of access control are presented,
+  detailed and illustrated by a few examples.
+\end{frame}
+
+% owner
+
+\subsection{Owner}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  The most basic access control model must be the one used by a system where
+  the object owner/creator only has the right to access it.
+
+  \-
+
+  Obviously, such a scheme is not much of interest as it lacks everything.
+\end{frame}
+
+% unix permissions
+
+\subsection{UNIX Permissions}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  The \name{UNIX} permissions where introduced with the \name{UNIX}
+  operating system.
+
+  \-
+
+  At that time, computers had little main memory and little storage capacity.
+  As such, designing the file system's access control was not as easy as
+  thought.
+
+  \-
+
+  The solution picked was, at the time, a very good trade-off between
+  expressivity and complexity especially in terms of storage capacity.
+
+  \-
+
+  Indeed, while a user cannot choose explicitely which users can access one of
+  her file and with which permissions, the \name{UNIX} scheme relies on the
+  concept that a file belongs both to a user, its owner---probably its
+  creator---and a group.
+\end{frame}
+
+% 2)
+
+\begin{frame}[containsverbatim]
+  \frametitle{Details}
+
+  As such, each file has, basically, $9$ bits of permissions, three sets of
+  $3$ bits \name{rwx} for the owner, group and others, meaning users that are
+  not the owner and that are not member of the group.
+
+  \begin{center}
+    \begin{tabular}{ccc}
+      \textbf{u}ser & \textbf{g}roup & \textbf{o}ther \\
+      \verb|r w x| & \verb|r w x| & \verb|r w x| \\
+    \end{tabular}
+  \end{center}
+
+  Note that, in \name{UNIX}, the system administrator is the only user allowed
+  to create groups, making difficult for users to organise people by
+  themselves.
+
+  \-
+
+  Furthermore, the group space is \term{flat} meaning that there is no
+  hierarchy \ie{} a group cannot be a member of another group. This detail
+  also complicates organising users in large systems.
+
+  \-
+
+  In conclusion, this scheme may lack flexibility especially when it comes to
+  managing fine grain accesses but also for large systems where organising
+  users becomes difficult.
+\end{frame}
+
+% acl
+
+\subsection{ACL}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  An \name{\term{ACL} - Access Control List} is a list of permissions
+  attached to an object.
+
+  \-
+
+  The list specifies who or what is allowed to access the object and what
+  operations are permitted. Typically, each \name{ACL} entry specifies a
+  subject and a list of allowed operations.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Limitation}
+
+  The question of how access control lists are edited depends on the system.
+
+  \-
+
+  Systems said to have discretionary access control let the creator or owner
+  of the object manage the list of permissions while systems with mandatory
+  access control enforce system-wide restrictions, overriding the permissions
+  stated in the \name{ACL}s.
+
+  \-
+
+  \name{ACL}s suffer from the same limitation than \name{UNIX} permissions.
+  Indeed, in the context of large systems with many users, it can become
+  cumbersome to assign permissions to every individual.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Example}
+
+  The \name{NTFS - NT File System} provides \name{ACL}s with extended
+  operations such as editing, listing a directory \etc{} in addition to the
+  well-known read, write and execute.
+
+  \-
+
+  Most of the \name{UNIX}-like operating systems such as \name{Linux},
+  \name{Solaris} \etc{} supported the so-called \name{POSIX.1e} standard.
+  However, since it has been abandoned, many operating systems now implement
+  the \name{ACL} scheme provided by \name{NFS - Network File System} \name{v4}.
+\end{frame}
+
+% 4)
+
+\begin{frame}
+  \frametitle{Confused Deputy Problem :: Overview}
+
+  Let's consider a service waiting for two arguments: the name of an input
+  file and the name of an output file.
+
+  \-
+
+  The service provided consists in compiling the first file, generating the
+  second one.
+
+  \-
+
+  Assuming that the service has the permission to read and write the
+  \location{/etc/passwd} file while the user does not; what would happen
+  if this file name was given as output?
+
+  \-
+
+  The service would process the given input file and overwrite the
+  \location{/etc/passwd} file which the user did not have the permission
+  to write.
+\end{frame}
+
+% 5)
+
+\begin{frame}
+  \frametitle{Confused Deputy Problem :: Explanation}
+
+  When the file name was passed from the client to the server, the permission
+  did not go along with it.
+
+  \-
+
+  Therefore, the permission was increased by the system silently and
+  automatically.
+
+  \-
+
+  This is a way to perform a \term{privilege escalation} attack.
+
+  \-
+
+  This kind of attacks is well-known on \name{UNIX}-like operating systems
+  via \name{setuid} executables.
+
+  \-
+
+  Note that in that case, both \name{UNIX} permissions and \name{ACL}s
+  suffer from this problem.
+
+  \-
+
+  The solution would be for the service to check if the user has the right to
+  access the given files but such a solution would require explicit attention
+  to security by the server and most services would not take that extra
+  security measure.
+\end{frame}
+
+% capabilities
+
+\subsection{Capabilities}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  A \term{capability} is a communicable, unforgeable token of authority.
+
+  \-
+
+  A capability references an object along with an associated set of access
+  rights.
+
+  \-
+
+  Therefore, processes willing to perform an action, instead of identifying
+  the object, pass the capability as an argument. Thus, the receiving process
+  will verify the validity of this capability before extracting both
+  the object identifier and the access rights.
+
+  \-
+
+  Capabilities are also interesting for providing the holder the possibility
+  to \term{attenuate} a capability \ie{} to restrict a given capability's
+  permissions, creating a new capability that could then be delegated and/or
+  used.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Least Privilege}
+
+  Capability-based system refer to the principle of sharing capability with
+  each other according to the principle of least privilege.
+
+  \-
+
+  Indeed, in the example of the confused deputy problem, the client would
+  provide the service two capabilities: one for the input file and the other
+  one for the output file.
+
+  \-
+
+  Thus, the service would not have any way of overwriting the
+  \location{/etc/passwd} unless the output capability references this file;
+  which is unlikely as we assumed the client did not have any permission
+  on this file.
+
+  \-
+
+  In conclusion, we can clearly see that the service, by using the received
+  capabilities, cannot by tricked in performing illegal operations.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Resemblance}
+
+  Although most operating systems implement a facility which resembles
+  capabilities, they typically do not provide enough support to allow
+  for exchange of capabilities among possibly mutually untrusting entities.
+
+  \-
+
+  In contrast, a capability-based system is designed with that goal in mind.
+
+  \-
+
+  For example, the \name{POSIX 1e/2c} capabilities are coarse-grained
+  privileges that cannot be transferred between processes; hence are not
+  capabilities in the strict sense given by the underlying concept.
+\end{frame}
+
+% 4)
+
+\begin{frame}
+  \frametitle{Examples}
+
+  Capabilities have been implemented in many systems, even languages.
+
+  \-
+
+  The secure distributed computing language \term{E} was
+  designed\footnote{The capability concept is closely related to the notion
+  of object-oriented programming.} with capabilities in mind.
+
+  \-
+
+  Research operating systems such as the historical suite \term{KeyKOS},
+  \term{EROS}, \term{CapROS} and \term{Coyotos} all used capabilities from
+  the ground up.
+
+  \-
+
+  The \name{IBM}'s operating system \term{System 250} integrated the notion
+  of capability addressing. Processes needed a capability to access a region
+  of memory. Unfortunately, such a technique might slow down the system
+  depending on the hardware not mentioning making the system less portable.
+
+  \-
+
+  Another example is \name{Google} \term{Caja} which allows websites to
+  exchange information with a fine-grained access. Imagine a user drag-dropping
+  her \name{GMail} contact list on \name{Facebook}, creating a capability
+  so that the \name{Facebook} website can access these contacts on the
+  \name{GMail} website without interfering with anything else on the user's
+  \name{GMail} account.
+\end{frame}
+
+% 5)
+
+\begin{frame}
+  \frametitle{Amoeba :: Overview}
+
+  The distributed operating system \name{Amoeba}, designed by
+  \name{Pr.} \name{Andrew Tanenbaum} is based on the concept of
+  capabilities.
+
+  \-
+
+  \begin{center}
+    \pgfuseimage{amoeba-capability}
+  \end{center}
+
+  \-
+
+  When an object is created, the server picks a random \name{Seed} and
+  computes the \name{Check} field but also stores it both in the new
+  capability and inside its own table. Besides, all the \name{Rights} bits
+  are initially on, and it is this \name{owner capability} that is returned
+  to the client.
+
+  \-
+
+  Then, when the capability is sent back to the server in a request to perform
+  an operation, the \name{Check} field is verified as detailed next.
+\end{frame}
+
+% 6)
+
+\begin{frame}
+  \frametitle{Amoeba :: Attenuation}
+
+  To create a restricted capability, a client pass its capability back to the
+  server, along with a bit mask for the new rights.
+
+  \-
+
+  The server takes the original---randomly picked---\name{Seed} from
+  its table and \textit{EXCLUSIVE OR}s it with the new rights and finally
+  runs the result through a one-way function.
+
+  \-
+
+  Note that the new rights must obviously be a subset of the given
+  capability's rights.
+
+  \-
+
+  Once the new capability created, the process may send it to another process,
+  if it wishes.
+
+  \-
+
+  Finally, note that the meaning of the \name{Rights} field depends on the
+  nature of the object.
+
+  \-
+
+  The verification process consists in retreiving the original \name{Seed},
+  \textit{EXCLUSIVE OR}ing it with the \name{Rights} field, then
+  through the one-way function and checking if it produces the capability's
+  \name{Check} field.
+\end{frame}
+
+% 7)
+
+\begin{frame}
+  \frametitle{Amoeba :: Attenuation}
+
+  \begin{center}
+    \pgfuseimage{amoeba-attenuation}
+  \end{center}
+\end{frame}
+
+% 8)
+
+\begin{frame}
+  \frametitle{Conclusion}
+
+  Unfortunately, capabilities are not really popular in common operating
+  systems.
+
+  \-
+
+  One reason might be that such operating systems were adapted from time
+  to time to provide extended security mechanisms.
+
+  \-
+
+  Since modifying an existing system is difficult, such operating systems
+  tend to include \name{ACL}s as it does not require a complete review of the
+  system design.
+\end{frame}
+
+% certificates
+
+\subsection{Certificates}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  Certification is another way to provide access control.
+
+  \-
+
+  We will see two types of certificates:
+
+  \begin{itemize}
+    \item
+      \name{\term{IC} - Identity Certificate};
+    \item
+      \name{\term{AC} - Authorization Certificate}.
+  \end{itemize}
+
+  \-
+
+  Note that a certificate typically encapsulates a validity period as well
+  as, obviously, the digital signature.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Identity Certificate}
+
+  \name{Identity Certificate}s also known as \name{\term{PKC} - Public Key
+  Certificate}s are digitally signed certificates that encapsulate the
+  identity of the certificate holder \ie{} caller.
+
+  \-
+
+  This type of certificate is well-used in distributed systems including
+  on the \name{Internet} since it allows server to identify the client that
+  is requesting an operation.
+
+  \-
+
+  Note that the access permissions are usually included in the certificate
+  but could be stored elsewhere, in an \name{Access Control List} on the
+  server for instance.
+
+  \-
+
+  The holder identity can be referenced through a name but also via a
+  public key.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Authorization Certificate}
+
+  In contrary, an \name{Authorization Certificate} is a digital document
+  that describes permissions to access a service.
+
+  \-
+
+  Interestingly, this certificate can be delegated since it does not
+  identify the holder.
+
+  \-
+
+  Such certificates are similar to capabilities as they store the permissions
+  to access an object and a reference to the object, not the actual object
+  itself.
+\end{frame}
+
+% 4)
+
+\begin{frame}
+  \frametitle{Singularity :: Overview}
+
+  \term{Singularity} is a microkernel-based research operating system designed
+  and implemented by \name{MSR - Microsoft Research}.
+
+  \-
+
+  \name{Singularity} differs from all other operating system kernels in the
+  way that all the processes, including the kernel, share the same address
+  space.
+
+  \-
+
+  Indeed, considering that address space switching, more specifically flushing
+  translation caches, is what takes time when it comes to context switching;
+  \name{Microsoft} researchers decided to remove this isolation mechanism
+  and rather let all processes live in the same space.
+
+  \-
+
+  Since no isolation is provided, the system must ensure that processes will
+  not access unauthorised memory regions. To guarantee that, \name{Singularity}
+  relies on software isolation.
+
+  \-
+
+  Indeed, static analysis is used for ensuring that invariants are verified.
+  In order to prove such components behaviours, a new language was introduced:
+  \name{Sing\#}.
+\end{frame}
+
+% 5)
+
+\begin{frame}
+  \frametitle{Singularity :: Validation}
+
+  However, how the kernel, given a binary object, could know if the code
+  has been verified.
+
+  \-
+
+  Indeed, if the code has not been, it could tamper the whole memory; hence
+  take complete control over the system.
+
+  \-
+
+  Although this has not been explicitely detailed by the authors,
+  a way of achieving this might be to rely on certification.
+
+  \-
+
+  Imagine that the kernel would reject running any binary that has not been
+  attached a properly signed certificate. Such a certificate could be signed
+  by a \name{\term{CA} - Certificate Authority} run by \name{Microsoft},
+  directly by the system administrator, or through a local compiling service.
+\end{frame}
+
+% 6)
+
+\begin{frame}
+  \frametitle{Conclusion}
+
+  Certification basically provides the same kind of expressivity that
+  capabilities.
+
+  \-
+
+  The difference lies in the computation time and space required by
+  certification.
+
+  \-
+
+  Indeed, issuing and verifying a digital signature takes far more time
+  than running a one-way function.
+
+  \-
+
+  In addition, public keys must be very large compared to the hash resulting
+  from the one-way function.
+
+  \-
+
+  One difference in favour of certification is that the system does not
+  need to keep anything in its own internal tables but the its key pair used
+  for issuing certificates.
+
+  \-
+
+  All in all, capabilities are probably more suited to operating systems
+  because of their small size while certification are more likely to be used
+  in distributed systems.
+\end{frame}
+
+%
+% further
+%
+
+\section{Further}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  This section presents advanced techniques for providing access control.
+\end{frame}
+
+% rbac
+
+\subsection{RBAC}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  \name{\term{RBAC} - Role-Based Access Control} is a newer alternative
+  approach to \name{Mandatory Access Control} and \name{Discretionary
+  Access Control}.
+
+  \-
+
+  \name{RBAC} is a neutral and flexible access control model sufficiently
+  powerful to simulate \name{DAC} and \name{MAC}.
+
+  \-
+
+  Prior to the development of \name{RBAC}, \name{MAC} and \name{DAC} were
+  considered to be the only known models for access control. Research in the
+  late $1990$s demonstrated that \name{RBAC} falls in neither category.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Details}
+
+  First, services need to classify clients into named roles. For instance,
+  a hospital would classify users into \name{surgeon}, \name{doctor},
+  \name{nurse} and \name{patient}.
+
+  \-
+
+  Then, access permissions are assigned to roles rather that directly to
+  principals.
+
+  \-
+
+  Therefore, managing individual rights becomes a matter of simply assigning
+  the appropriate roles to the user, which is quite straightforward in
+  an organization where administrator already perform tasks such as adding
+  a user, changing a user's department \etc{}
+
+  \-
+
+  All that entities have to do is to authenticate so that they can prove
+  they belong to a role.
+
+  \-
+
+  Note that obviously, a subject can have multiple roles, a role can have
+  multiple subjects, a role can have multiple permissions and a permission
+  can be assigned to different roles.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Conclusion}
+
+  \name{RBAC} is especially interesting as it eases administration since
+  roles change far less frequently than individuals join or leave
+  organisations.
+
+  \-
+
+  Authentication can be done through certification or by using capabilities.
+  Indeed, \name{RBAC} information such as the role and possibly some
+  parameters could be included in a capability.
+
+  \-
+
+  Examples of security solutions implementing \name{RBAC} include
+  \name{SELinux}, \name{Microsoft Active Directory}, \name{grsecurity} \etc{}
+\end{frame}
+
+%
+% kaneton
+%
+
+\section{kaneton}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  \name{kaneton} provides both \name{DAC} and \name{MAC} categories.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{DAC}
+
+  Indeed, the capabilities enable tasks to implement a \name{DAC} policy since
+  every time an entity creates an object, it is given a capbility.
+
+  \-
+
+  Then, the entity is allowed to distribute this capability or even to
+  attenuate it, hence to manage the object's permissions.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{MAC}
+
+  The kernel, on the other side, implements the \name{MAC} policy by strictly
+  controlling which task receives a capability on hardware objects such
+  as mapped memory regions like the \name{VGA} memory.
+\end{frame}
+
+% 4)
+
+\begin{frame}
+  \frametitle{Capabilities}
+
+  The \name{kaneton} microkernel adopted a different approach regarding the
+  capabilities format.
+
+  \-
+
+  Indeed, the format is not statically defined as it is in \name{Amoeba} so
+  that every server manages its capabilities its own way with its own specific
+  format.
+
+  \-
+
+  Therefore, unlike \name{Amoeba}, a file system server could provide a
+  capability with a $64-bit$ identifier while a print service would rather
+  rely on $8$ bits for identifying all the connected printers.
+\end{frame}
+
+% 5)
+
+\begin{frame}
+  \frametitle{Principles}
+
+  Those components seem enough to provide security in kaneton mostly
+  because \name{kaneton} integrates the \name{security by design} principle.
+
+  \-
+
+  Therefore, all the developed applications must integrate security
+  principles to some degrees because the system design forces them to.
+\end{frame}
+
+%
+% conclusion
+%
+
+\section{Conclusion}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Conclusion}
+
+  Although some access control models are more attractive than others,
+  designers should always remember that choosing the right solution always
+  depends on the system's constraints.
+
+  \-
+
+  Therefore, relying on \name{UNIX} permissions might still be an acceptable
+  solution for certain systems while certification might be too expensive
+  to implement on other systems.
+
+  \-
+
+  However, in the context of operating systems, it seems that capabilities
+  offer the best trade-off between efficiency and flexibility.
+\end{frame}
+
+%
+% bibliography
+%
+
+\begin{frame}
+  \frametitle{Bibliography}
+
+  \bibliographystyle{amsplain}
+  \bibliography{\path/bibliography/bibliography}
+\end{frame}
+
+\end{document}

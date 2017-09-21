@@ -1,0 +1,355 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% created       patrick samy   [mon mar 20 21:56:41 2013]
+% updated       patrick samy   [sat mar 23 11:20:51 2013]
+%
+
+%
+% ---------- setup ------------------------------------------------------------
+%
+
+%
+% path
+%
+
+\def\path{../../..}
+
+%
+% template
+%
+
+\input{\path/template/exam.tex}
+
+%
+% title
+%
+\date{}
+\title{Noyaux et Syst\`emes d'Exploitation}
+
+%
+% header
+%
+
+\lhead{\scriptsize{EPITA\_ING2 - 2013\_S4 - NSE}}
+\rhead{}
+
+%
+% document
+%
+\usepackage[utf8]{inputenc}
+\usepackage{enumitem}
+\begin{document}
+
+%
+% title
+%
+
+\maketitle
+
+%
+% indentation
+%
+
+\indentation{}
+
+%
+% --------- information -------------------------------------------------------
+%
+
+\begin{center}
+
+\textbf{Documents et calculatrice interdits}
+
+\textbf{Durée 3 heures}
+
+\scriptsize{Les résultats des calculs sous forme autre que décimale sont admis.}
+
+\scriptsize{Une copie bien présentée sera toujours mieux notée qu'une autre.}
+
+\end{center}
+
+%
+% --------- text --------------------------------------------------------------
+%
+
+%
+% boot
+%
+
+\section{{Bootloader}
+         {\hfill{} \normalfont{\scriptsize{4 points}}}}
+
+\begin{enumerate}
+
+% Q
+\item Quel est l'espace adressable en mode réel? (1 point)
+
+% R
+\begin{correction}
+1 Mo
+\end{correction}
+
+
+% Q
+\item Comment sait-on si un secteur de disquette est bootable? (1 point)\\
+N.B.: Attention à l'endianness, soyez clair !
+
+% R
+\begin{correction}\\
+Offset 511 / 512 = 0x55\\
+Offset 512 / 512 = 0xAA\\
+(1 point si tout OK ; 0,5 si inversé ; 0 autrement)\\
+\end{correction}
+
+
+% Q
+\item Synthétiquement, donner les étapes du bootstrap (2 points)\\
+N.B : Faire attention aux mots du sujet !
+
+% R
+\begin{correction}
+\begin{itemize}
+  \item Matériel: mise dans un état cohérent
+  \item Firmware: Initialisation de certains périphériques et mise en place de certains services
+  \item Bootloader: charge le noyau
+\end{itemize}
+(2 points si les 3 étapes, 1 point si 2, 0 autrement)\\
+ATTENTION : les étudiants confondent régulièrement bootstrap et bootloader\\
+\end{correction}
+
+
+% fin de bootloader
+\end{enumerate}
+
+% Interruptions %
+\section{{Exceptions et interruptions}
+         {\hfill{} \normalfont{\scriptsize{3 points}}}}
+\begin{enumerate}
+  \item Donner la différence entre une exception et une interruption. (1 point)
+  \item Sur architecture x86, expliquer pourquoi CS, EIP, et EFLAGS, sont replacés automatiquement depuis la pile dans leurs registres respectifs lors de l'exécution de l'instruction IRET. (1 point)
+  \item Quelle utilisation, en rapport avec les interruptions, est-il possible de faire a partir d'une prise de réseau électrique? (1 point)
+
+\end{enumerate}
+
+% Memoire %
+\section{{Mémoire}
+         {\hfill{} \normalfont{\scriptsize{9 points}}}}
+
+\begin{enumerate}
+
+% Q
+\item Un ordinateur ayant des adresses virtuelles de 32 bits utilise une table des pages (page table) à deux niveaux. Les adresses virtuelles se composent d'un champ de 9 bits pour la table des pages du premier niveau, d'un champ de 11 bits pour la table des pages du deuxième niveau et d'un déplacement (offset). Une entrée de table des pages occupe 4 octets. (7 points)
+  \begin{enumerate}
+  \item Quelle est la taille et le nombre de pages de l'espace d'adressage virtuel ? (1 point)
+  \item Commentez cette architecture (2 points).
+  \item Proposez une architecture optimale de table des pages (toujours avec 4 octets pour une entrée) à plusieurs niveaux pour un ordinateur ayant des adresses virtuelles de 64 bits (2 points). \\
+  Commentez cette architecture en cas de TLB miss (2 points).
+  \end{enumerate}
+
+% R
+\begin{correction}\\
+Remarque: l’ordre des champs peut etre quelconque (offset au milieu, PTEs a la fin, etc.).
+\begin{enumerate}[label=(\alph*)]
+  \item \begin{tabular}{|c|c|c|} \hline 9 & 11 & $32-9-11=12$\tabularnewline \hline \end{tabular} \\
+        Taille = $2^{12}=4$ko \\
+        Nombre de pages = $2^{9}\times2^{11}=2^{20}$
+
+  \item Taille PD = $2^{9}\times4=2^{9}*2^{2}=2^{11}=\frac{2^{12}}{2}$ = une demi page\\
+        Taille PT = $2^{11}\times4=2^{11}*2^{2}=2^{13}=2^{12}\times2$ = deux pages\\
+        Donc pour maper une page, il faut 3 pages... On perd en plus une demi
+        page pour chaque PDE créée (on pourrait la rendre accessible pour
+        l’utiliser mais mauvais pour la sécu puisque ca impliquerait la
+        possibilité de modifier la PD juste en changeant l’offset de
+        l’adresse).
+
+  \item Architecture optimale\\
+        $\Rightarrow$ utilise le moins de page que possible pour le mapping (revient à dire aussi : qui utilise le moins de place que possible en RAM, et comme l’unité de la RAM est la page, c’est la meme chose que dire qu’on utilise le moins de page possible)\\
+        $\Rightarrow$ taille des page tables = la taille d’une page = 4ko\\
+        $\Rightarrow$ $2^{10}$ entrées ($2^{12}$ octets / 4 octets par entrée = $2^{10}$ entrées).\\
+        $\Rightarrow$ champs PTE dans l'adresse virtuelle de 10 bits.\\
+        Or 64 - 10 - 10 - 10 - … - 12 = 2, il reste 2 bits libres, non utilisés par notre MMU.\\
+        \begin{tabular}{|c|c|c|c|c|c|c|}
+           \hline 2 & 10 & 10 & 10 & 10 & 10 & 12\tabularnewline \hline
+        \end{tabular}\\
+         Commentaire sur l’archi : 5 pages tables ! ca fait tres mal en cas de
+         TLB miss : en pire cas (rien du tout en cache), on a 6 acces RAM (PT1,
+         PT2, PT3, PT4, PT5, Page) pour arriver à la donnée finale ! Comparé à
+         un TLB hit, on a tout intérêt à préserver la TLB !
+\end{enumerate}
+\end{correction}
+
+% Q
+\item Soit l'état des pages suivant comportant la date à laquelle la page a été créée, le compteur d'accès, et les bits R (référencé) et M (modifié). Quelle est la page qui sera remplacée par l'algorithme :
+\begin{enumerate}
+  \item NRU? (0.5 point)
+  \item FIFO? (0.5 point)
+  \item NFU? (0.5 point)
+  \item De la seconde chance (en considérant que l'algorithme est appliqué pour la première fois)? (0.5 point)
+\end{enumerate}
+Justifiez en une seule phrase. (2 points)
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Page & Date de création & Compteur d'accès & R & M\tabularnewline
+\hline
+\hline
+0 & 126 & 49 & 0 & 0\tabularnewline
+\hline
+1 & 230 & 30 & 1 & 0\tabularnewline
+\hline
+2 & 120 & 42 & 1 & 1\tabularnewline
+\hline
+3 & 160 & 50 & 1 & 1\tabularnewline
+\hline
+\end{tabular}
+\end{center}
+
+% R
+\begin{correction}
+\begin{enumerate}[label=(\alph*)]
+  \item NRU: 0 (R = 0, M = 0)
+  \item FIFO: 2 (Page la plus ancienne)
+  \item NFU: 1 (Compteur minimal)
+  \item De la seconde chance: 0 (La page 2 a son bit R à 1 => sa date de chargement devient temps courant et R mis à 0)
+\end{enumerate}
+\end{correction}
+
+% fin de la partie Mémoire
+\end{enumerate}
+
+
+% Multi-tache / Ordonnancement %
+\section{{Multi-tâche \& Ordonnancement}
+         {\hfill{} \normalfont{\scriptsize{8 points}}}}
+
+\begin{enumerate}
+
+% Q
+\item Expliquez pourquoi l'implémentation du changement de contexte de
+      kaneton induit une perte de performance certaine. (2 points) \\
+      Comment remédier à ce problème? Vous pourrez exposer des exemples
+      d'implémentation dans d'autres noyaux. (2 points)
+
+% Q
+\item Cinq travaux, A à E, arrivent pratiquement en même temps dans un centre de calcul. Leur temps d'exécution respectif est estimé à 10, 6, 2, 4, 8 minutes. Leurs priorités (déterminées de manière externe) sont 3, 5, 2, 1 et 4, la valeur 5 correspondant à la priorité la plus élevée. Déterminez le temps moyen d'attente pour chacun des algorithmes d'ordonnancement suivants. Ne tenez pas compte du temps perdu lors de la commutation des processus.
+  \begin{enumerate}
+  \item Tourniquet (1 point)
+  \item Ordonnancement avec priorité (1 point)
+  \item Premier arrivé, premier servi (ordre d'arrivée: ordre alphabétique). (1 point)
+  \item Plus court d'abord. (1 point)
+  \end{enumerate}
+Dans le cas (a) on fait l'hypothèse que le temps processeur est équitablement réparti entre les différents travaux. Dans les cas (b) à (d), on suppose que chaque travail est exécuté jusqu'à ce qu'il se termine. Les travaux n'effectuent pas d'E/S. Détaillez vos calculs (dessins/tableaux \& moyenne sous forme de quotient admis).
+
+% R
+\begin{correction}\\
+P: Processus courant\\
+T: Tour/Temps d’exécution depuis un 0 absolu.\\
+E: temps d'exécution restant\\
+
+\begin{enumerate}[label=(\alph*)]
+
+\item Round Robin: la remarque sous-entend la préemption\\
+      Timeline de l’execution: * = exécution terminée
+
+      \begin{tabular}{|c||c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+      \hline
+      P & A & B & C & D & E & A & B & C{*} & D & E & A & B & D & E & A & B & D{*} & E\tabularnewline
+      \hline
+      T & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 & 13 & 14 & 15 & 16 & 17 & 18\tabularnewline
+      \hline
+      E & 9 & 5 & 1 & 3 & 7 & 8 & 4 & 0 & 2 & 6 & 7 & 3 & 1 & 5 & 6 & 2 & 0 & 4\tabularnewline
+      \hline
+      \end{tabular}
+
+      \begin{tabular}{|c||c|c|c|c|c|c|c|c|c|c|c|c|}
+      \hline
+      P & A & B & E & A & B{*} & E & A & E & A & E{*} & A & A{*}\tabularnewline
+      \hline
+      T & 19 & 20 & 21 & 22 & 23 & 24 & 25 & 26 & 27 & 28 & 29 & 30\tabularnewline
+      \hline
+      E & 5 & 1 & 3 & 4 & 0 & 2 & 3 & 1 & 2 & 0 & 1 & 0\tabularnewline
+      \hline
+      \end{tabular}
+
+      Temps d’attente:\\
+      C = 8 min\\
+      D = 17 min\\
+      B = 23 min\\
+      E = 28 min\\
+      A = 30 min\\
+      Moyenne = (A + B + C + D + E) / 5 = 21,2 min
+
+\item Priorité:\\
+      \begin{tabular}{|c||c|c|c|c|c|}
+      \hline
+      P & B & E & A & C & D\tabularnewline
+      \hline
+      T & 6 & 6+8=14 & 14+10=24 & 24+2=26 & 26+4=30\tabularnewline
+      \hline
+      \end{tabular}\\
+      Moyenne = (6 + 14 + 24 + 26 + 30) / 5 = 20 minutes
+
+\item Premier arrivé, premier servi:\\
+      \begin{tabular}{|c||c|c|c|c|c|}
+      \hline
+      P & A & B & C & D & E\tabularnewline
+      \hline
+      T & 10 & 10+6=16 & 16+2=18 & 18+4=22 & 22+8=30\tabularnewline
+      \hline
+      \end{tabular}\\
+      Moyenne = (10 + 16 + 18 + 19 + 23) / 5 = 19,2 minutes
+
+\item Plus court d’abord:\\
+      \begin{tabular}{|c||c|c|c|c|c|}
+      \hline
+      P & C & D & B & E & A\tabularnewline
+      \hline
+      T & 2 & 2+4=6 & 6+6=12 & 12+8=20 & 20+10=30\tabularnewline
+      \hline
+      \end{tabular}\\
+      Moyenne = (2 + 6 + 12 + 20 + 30)/5 = 14 minutes
+\end{enumerate}
+\end{correction}
+
+% fin de multi-tache & ordonnancement
+\end{enumerate}
+
+
+% Concurrence %
+\section{{Concurrence}
+         {\hfill{} \normalfont{\scriptsize{6 points}}}}
+
+\begin{enumerate}
+
+% Q
+\item Supposez que vous ayez à concevoir l'architecture d'un ordinateur évolué où la commutation entre les processus serait faite par le matériel, et non par logiciel via le mécanisme d'interruption. \\
+      Quelles seraient les informations nécessaires au processeur ?  (3 points) \\
+      Décrivez le fonctionnement de la commutation effectuée par le matériel (2 points).
+
+% R
+\begin{correction}
+\begin{itemize}
+  \item Pour faire un contexte switch, le CPU a besoin des infomartions suivantes du processus à exécuter:
+  \begin{itemize}
+    \item Registres Généraux (1 point)
+    \item Pointeurs sur pile et sur code (program counter, next instruction pointer...), stack pointer (1 point)
+    \item Control Registers (1 point)
+  \end{itemize}
+  Fonctionnement du context switch HW moins souple qu'un SW: il ne sait pas ce qu'il execute, il sauvegarde donc tous les registres du processeurs, il doit aussi chercher les nouvelles données dans des structures bien définies.
+\end{itemize}
+\end{correction}
+
+
+% Q
+\item Quelle est la différence entre un thread kernel et un thread user-land ? (1 point)
+
+% fin de Concurrence
+\end{enumerate}
+
+\end{document}

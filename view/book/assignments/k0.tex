@@ -1,0 +1,738 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/book/assignments/k0.tex
+%
+% created       julien quintard   [fri nov 28 05:25:37 2008]
+% updated       julien quintard   [sun mar  6 18:58:11 2011]
+%
+
+%
+% ---------- k0 ---------------------------------------------------------------
+%
+
+\chapter{k0}
+\label{chapter:k0}
+
+\name{k0} is an introduction to low-level programming through the development
+of a simplistic boot loader. Note that this stage is not critical because
+the following stages will not rely on this boot loader as \name{GRUB - GRand
+Unified Bootloader} will be used instead.
+
+Through this stage, the student will manipulate several concepts including:
+
+\begin{enumerate}
+  \item
+    \term{Computer Boot Process}
+
+    \-
+
+    The several phases a computer runs through in order to check the
+    machine's state, to the location of the bootable devices until the
+    execution is transferred to the first valid boot sector found.
+  \item
+    \term{Assembly Language}
+
+    The boot loader will be entirely developed in the Intel \name{x86}
+    assembly language.
+  \item
+    \term{\name{BIOS - Basic Input/Output System} Interrupts}
+
+    The \name{BIOS} provides basic functionalities for reading the floppy,
+    displaying text to the screen \etc{} These functionalities will be used
+    in the first exercices to get used to the low-level development
+    environment.
+  \item
+    \term{Processor Modes}
+
+    The \name{Intel} microprocessor can run in different modes depending on
+    the word length---16 or 32 bits---, the protection capabilities \etc{}
+
+    \-
+
+    While the simplest mode will be used at first, enabling students to
+    use the \name{BIOS}' features, a more evolved mode will finally be used
+    as required before handing the execution to the kernel \ie{} the
+    \name{Protected Mode}.
+  \item
+    \term{\name{ELF - Executable and Linking Format}}
+
+    The boot loader, written in assembly, is packed in a raw format
+    to be detected as a valid boot loader by the computer's \name{BIOS}.
+
+    \-
+
+    However, the kernel, probably written in \name{C} or \name{C++}, will
+    be packed in an advanced format referred to as \name{ELF}. Although this
+    format has numerous capabilities, the boot loader will basically
+    find the entry point and jump on it.
+\end{enumerate}
+
+\newpage
+
+%
+% ---------- text -------------------------------------------------------------
+%
+
+%
+% development
+%
+
+\section{Development}
+
+Students are advised to use \name{GCC - GNU Compiler Collection} to assemble
+their source files and \name{GNU LD} to link them into binary files. Note
+that students must therefore follow the \name{GAS -GNU Assembler} syntax.
+
+The following example illustrates this two-step process:
+
+\begin{verbatim}
+  $> gcc -c bootsect.S -o bootsect.o
+  $> ld bootsect.o -o bootsect --oformat binary -Ttext 0x7c00
+\end{verbatim}
+
+In order to execute your code, students should use the \name{QEMU} emulator,
+as follows:
+
+\begin{verbatim}
+  $> qemu-system-i386 -fda bootsect
+\end{verbatim}
+
+Let us recall that \name{x86} microprocessors start executing in 16-bit. A
+directive must therefore be used to specify the assembler that the code
+must be generated in 16-bit. Note that students will later be asked to
+switch to a 32-bit mode referred to as the \name{Protected Mode}. As such,
+another directive will have to be used, hence mixing both 16- and 32-bit
+code.
+
+%
+% resources
+%
+
+\section{Resources}
+
+Students will find additional resources related to the \name{k0} stage
+on the \name{Wiki} at \location{http://kaneton.opaak.org/wiki}.
+
+%
+% test
+%
+
+\section{Test}
+
+Students will need to test the functions they implement. In order to keep
+the test environment from the exercise files, it is advise to rely on
+the \name{CPP - C Pre-Processor} for including the exercises' functions
+within the test file.
+
+The following example illustrates a test file which includes the first
+exercise's file:
+
+\begin{verbatim}
+.globl _start
+
+_start:
+  mov 0x42, %al
+  call print_char
+
+loop:
+  jmp loop
+
+#include "ex1.S"
+\end{verbatim}
+
+This way, the test code is always kept apart from the exercises so that
+the risk for students to submit their tests is limited.
+
+%
+% submission
+%
+
+\section{Submission}
+
+Every student is expected to submit a snapshot containing the following
+structure. Note that the evaluation system is automatic. Therefore, any
+snapshot which does not conform with this structure will obviously be assigned
+the grade of zero:
+
+\begin{verbatim}
+  ex1/
+    ex1.S
+  ex2/
+    ex2.S
+  ex3/
+    ex3.S
+  ex4/
+    ex4.S
+  ex5/
+    ex5.S
+  ex6/
+    ex6.S
+\end{verbatim}
+
+The submitted snapshot should therefore contain nothing more than these
+six directories and files. Please be careful with the extension of the source
+files; the 'S' is uppercase!
+
+The \name{k0} stage is composed of several exercises. For each exercise,
+the student is asked to write functions in assembly language taking arguments
+in some registers and providing output in others. Note that these functions
+should take care not to modify any register unless explicitly stated.
+
+Every exercise is attached to a specific file, \code{ex2.S} for instance.
+Such a file must therefore contain the labels of the functions that the student
+is supposed to provide.
+
+In addition, every file should end with the bootsector signature, making the
+functions of the file useable within a boot loader. This signature, composed
+of the bytes \code{0xaa55} must be located at the $511$th and $512$th byte
+of the first boot sector. Thus, the boot sector must be filled up until the
+$511$th byte is reached, at which position the signature must be put.
+
+The example below illustrates such an exercise file, containing two
+labels and the bootsector signature:
+
+\begin{verbatim}
+  .code16
+
+  requested_function_1:
+    mov $0x42, %ah
+    mov %bl, %bl
+
+  local_label:
+    int $0x10
+    xor %dh, %dh
+    jmp local_label
+    ret
+
+signature:
+  .org 510, 0
+  .short 0xaa55
+\end{verbatim}
+
+Some exercises will require students to output text on the screen. Bear in
+mind that exercises are evaluated automatically. Therefore, color is not
+taken into account. Besides, students should never try to clear the screen
+of the text printed by the \name{BIOS} or the emulator. By doing so, the
+evaluation system would catch the sequence and consider it as text being
+printed by your functions.
+
+Finally, as explained previously, students will need to test their functions
+in order to make sure they behave properly. Students must remember to remove
+these tests from the submitted snapshot. Thus, your source files should never
+include a label \code{\_start} or any label starting with \code{\_\_}. Note
+however that the bootsector signatures must remain.
+
+Note that this stage differs slightly from the following ones regarding
+the submission. Indeed, in the following stages, which take place within the
+microkernel, the test client automatically packages the student's current
+implementation and sends it to the server.
+
+For this stage however, the student is asked to package its source files
+manually, according to the hierarchical structure given above. Then,
+the freshly created snapshot must be placed in the client directory
+under the name \code{snapshot.tar.bz2} \ie{} at the precise location:
+\location{test/client/snapshot.tar.bz2}.
+
+Finally, the test client can be used to submit the stage \name{k0}. The
+client, noticing the presence of the snapshot, will use it instead of
+generating a snapshot from the current kaneton implementation.
+
+The lines below illustrates this process.
+
+\begin{verbatim}
+  $k0> ls
+  ex1/ ex2/ ex3/ ex4/ ex5/ ex6/
+  $k0> tar cjvf k0.tar.bz2 *
+  [...]
+  $k0> mv k0.tar.bz2 ~/kaneton/test/client/snapshot.tar.bz2
+  $k0> cd ~/kaneton/test/client/
+  $~/kaneton/test/client> ls
+  client.py Makefile README snapshot.tar.bz2
+  $~/kaneton/test/client> make submit-k0
+  [+] configuration:
+  [+]   server:                 https://test.opaak.org:8421
+  [+]   capability:             /home/chiche/kaneton/environment/profile/user/florent.chichery/florent.chichery.cap
+  [+]   platform:               ibm-pc
+  [+]   architecture:           ia32/educational
+
+  [+] loading the snapshot '/home/chiche/kaneton/test/client/snapshot.tar.bz2'
+  [+] requesting the server
+  [+] the snapshot has been submitted successfully
+  $~/kaneton/test/client>
+\end{verbatim}
+
+Note that once the snapshot has been submitted, students should
+remove the file from the \location{test/client/} directory in order
+to prevent it from being used in the other stages.
+
+%
+% evaluation
+%
+
+\section{Evaluation}
+
+The student's code will be evaluated by testing every function automatically.
+
+The evaluation process will therefore go as follows. First, the student
+exercise file will be linked with an evaluation file containing the entry
+point. This main function will then trigger some function calls and verify
+that these functions behave according to the specifications defined in this
+document.
+
+Let us recall that the whole binary---composed of the student exercise file
+and the evaluation function---must fit in a bootsector \ie{} $512$ bytes.
+
+Therefore, for every exercise, the size of the evaluation code is given
+as an indication. As such, students should make sure the size of their code
+does not exceed the remaining capacity of a bootsector.
+
+In order to make sure a student's exercise does not exceed this capacity,
+the following directive can be used:
+
+\begin{verbatim}
+  .space 42,0
+
+  #include "ex1.S"
+\end{verbatim}
+
+Note that the value $42$ will have to be replaced by the size of the
+evaluation code given in each exercise.
+
+If the assembler refuses to generate a binary given a test file containing
+this directive, this would mean that the exercise code takes too much space,
+in which case the student will have to optimise it. The error the assembler
+returns in such scenarios is similar to the one below:
+
+\begin{verbatim}
+  ex1.S: Assembler messages:
+  ex1.S:12: Error: attempt to move .org backwards
+\end{verbatim}
+
+%
+% exercises
+%
+
+\section{Exercises}
+
+This section discusses the various exercises contained in this stage.
+
+% console
+\subsection{Console}
+
+Through this exercise the student will learn how to use \name{BIOS} services
+in order to print strings to the console.
+
+\begin{center}
+  \begin{tabular}{|p{5cm}|p{5cm}|l}
+    \cline{1-2}
+
+    \centering{\textbf{File}} &
+    \centering{\textbf{Space}} &
+    \\
+
+    \cline{1-2}
+
+    \centering{\location{ex1/ex1.S}} &
+    \centering{$175$ bytes} &
+    \\
+
+    \cline{1-2}
+  \end{tabular}
+\end{center}
+
+This exercise is divided into several steps through the implementation
+of the following functions.
+
+\command{print\_char}
+{
+  This function prints the character whose \name{ASCII} code is given in
+  \argument{\%al}.
+
+  \-
+
+  Note that the character is displayed at current cursor's position.
+}
+
+\command{cursor\_set}
+{
+  This function set the cursor's position at row \argument{\%dh} and
+  column \argument{\%dl}.
+}
+
+\command{print\_string}
+{
+  Finally, this function prints the string referred to by \argument{\%si} at
+  the position given by row \argument{\%dh} and column \argument{\%dl}.
+}
+
+% registers
+\subsection{Registers}
+
+In this exercise, students are invited to implement several functions
+well-known from \name{POSIX} programmers. These functions will finally be
+used to provide a function used to dump the state of the $16$-bit registers.
+
+\begin{center}
+  \begin{tabular}{|p{5cm}|p{5cm}|l}
+    \cline{1-2}
+
+    \centering{\textbf{File}} &
+    \centering{\textbf{Space}} &
+    \\
+
+    \cline{1-2}
+
+    \centering{\location{ex2/ex2.S}} &
+    \centering{$155$ bytes} &
+    \\
+
+    \cline{1-2}
+  \end{tabular}
+\end{center}
+
+\command{malloc}
+{
+  This function allocates \argument{\%ax} bytes of memory and returns the
+  address in \argument{\%di}.
+
+  \-
+
+  First, the base address of the head should be statically declared. Then,
+  whenever the function is called, the next available address is used and
+  incremented.
+}
+
+\command{itoa\_hex}
+{
+  This function converts the integer in \argument{\%ax} into a string
+  using the hexadecimal representation, the address of the string being
+  returned in \argument{\%si}
+
+  \-
+
+  Note that the hexadecimal format must comply with the regular expression
+  \code{0x[0-9a-f]\{4\}}. For example, the number $42$ should be converted
+  to the string \code{'0x002a'}.
+
+  \-
+
+  This function could for instance be used by students to check the address
+  returned by the \code{malloc()} function.
+}
+
+\command{dump\_registers}
+{
+  This function dumps the values of the registers \name{ax}, \name{bx},
+  \name{cx}, \name{dx}, \name{si} and \name{di}.
+
+  \-
+
+  This function must start displaying at the current cursor's position.
+  Besides, the evaluation system expects the function to come back to the
+  first line when the end of the screen is reached.
+
+  \-
+
+  In essence, the output should be exactly identical to the one below:
+}
+  \begin{verbatim}
+    ax = 0x1234
+    bx = 0x0000
+    cx = 0xabcd
+    dx = 0x00ff
+    si = 0x1000
+    di = 0x0ff8
+  \end{verbatim}
+
+% keyboard
+\subsection{Keyboard}
+
+In this exercise, the aim is to implement a basic keyboard driver by
+relying on the \name{BIOS} services.
+
+\begin{center}
+  \begin{tabular}{|p{5cm}|p{5cm}|l}
+    \cline{1-2}
+
+    \centering{\textbf{File}} &
+    \centering{\textbf{Space}} &
+    \\
+
+    \cline{1-2}
+
+    \centering{\location{ex3/ex3.S}} &
+    \centering{$155$ bytes} &
+    \\
+
+    \cline{1-2}
+  \end{tabular}
+\end{center}
+
+\command{get\_key}
+{
+  This function returns in \argument{\%al} the \name{ASCII} code of the
+  key which has been pressed.
+}
+
+\command{getln}
+{
+  This function reads and prints every character received from the keyboard.
+  When \name{ENTER} is entered however, a \name{newline} is printed and
+  the function returns.
+
+  \-
+
+  Note that none of the modifiers such as \name{SHIFT}, \name{ALT},
+  \name{CTRL}, \name{CAPS LOCK} \etc{} will be tested. Likewise, the arrows,
+  \name{BACKSPACE} \etc{} will also be ignored.
+
+  \-
+
+  Finally, the end of line does not have to be handled as it will not
+  be tested.
+}
+
+% floppy
+\subsection{Floppy}
+
+Further \name{BIOS} interrupts  are introduced here to make the $16-bit$
+programmer able to control the floopy drive. The objective of this exercise is
+to read the second sector from the floppy drive in order to check
+whether it is a valid bootsector.
+
+Note that the second sector is considered because the first has already
+been loaded into memory. This technique is used by boot loaders, such as
+\name{GRUB}, to provide \name{chain loading}.
+
+\begin{center}
+  \begin{tabular}{|p{5cm}|p{5cm}|l}
+    \cline{1-2}
+
+    \centering{\textbf{File}} &
+    \centering{\textbf{Space}} &
+    \\
+
+    \cline{1-2}
+
+    \centering{\location{ex4/ex4.S}} &
+    \centering{$155$ bytes} &
+    \\
+
+    \cline{1-2}
+  \end{tabular}
+\end{center}
+
+\command{floppy\_init}
+{
+  This function initializes the floppy drive.
+}
+
+\command{is\_bootsector}
+{
+  This function calls the initialization of the floppy drive, loads the
+  second sector into memory and checks that it is a valid bootsector.
+
+  \-
+
+  Noteworthy is that sectors are numbered starting with 1, not 0.
+
+  \-
+
+  Once the sector checked, the function prints a string, along with the
+  read boot signature. Note that the function must prints at the current
+  cursor's position.
+
+  \-
+
+  The following illustrates both cases, respectively a valid and invalid
+  bootsector.
+}
+\begin{verbatim}
+  magic found: 0xaa55
+  wrong magic: 0x0042
+\end{verbatim}
+
+% mode
+\subsection{Mode}
+
+Until now, the code students have been developing were written in $16$-bit,
+hence evolving in \name{Real Mode}. This mode is a relique of the past. As
+most kernels are written in $32$-bit, the boot loader must prepare the
+environment to fit the needs of the kernel.
+
+Through this exercise, the students are going to switch from the \name{Real
+Mode} to the \name{Protected Mode}. This process requires the developer to
+set up some hardware data structures indicating the microprocessor how it
+must behave. The data structure of interest if the \name{GDT - Global
+Descriptor Table}.
+
+\begin{center}
+  \begin{tabular}{|p{5cm}|p{5cm}|l}
+    \cline{1-2}
+
+    \centering{\textbf{File}} &
+    \centering{\textbf{Space}} &
+    \\
+
+    \cline{1-2}
+
+    \centering{\location{ex5/ex5.S}} &
+    \centering{$225$ bytes} &
+    \\
+
+    \cline{1-2}
+  \end{tabular}
+\end{center}
+
+Students should read the necessary material, especially the \name{Intel}
+manual \name{Volume 3A} which contains a chapter on the \name{Protected Mode}.
+
+The following describes the steps to follow to perform a switch to the
+\name{Protected Mode}:
+
+\begin{enumerate}
+  \item
+    Create and fill the \name{GDT} with the necessary entries;
+  \item
+    Disable the interrupts through the \code{cli} instruction which masks
+    the hardware maskable interrupts;
+  \item
+    Set the \name{PE} flag in the control register \name{CR0};
+  \item
+    Immediately perform a long jump in order to change the \name{CS - Code
+    Segment} selector, referencing the appropriate \name{GDT} entry;
+  \item
+    Update the other segment selectors \name{DS}, \name{ES}, \name{FS},
+    \name{GS} and \name{SS}.
+\end{enumerate}
+
+Do not forget that the code executed after switching from the \name{Real Mode}
+to the \name{Protected Mode} must be assembled in 32-bit.
+
+In addition, \name{BIOS} interrupts cannot be used in \name{Protected Mode}.
+Therefore, the basic functionalities must be re-implemented in $32$-bit and
+without the support of the \name{BIOS} services.
+
+\command{pmode\_switch}
+{
+  This function switches from the \name{Real Mode} to the \name{Protected
+  Mode}.
+
+  \-
+
+  Note that when calling this function, the \name{CPU} will push the return
+  address as a $16$-bit value, since operating in \name{Real Mode}. However,
+  when returning, the \name{CPU} will pop a $32$-bit value since now operating
+  in \name{Protected Mode}.
+
+  \-
+
+  The student should not worry about this detail when implementing this
+  function. Indeed, it is the responsability of the caller to push another
+  $16$-bit zero on the stack before calling so that when pop-ed in $32$-bit
+  both values coincide.
+}
+
+\command{print\_string32}
+{
+  This function prints the string whose address is given in \argument{\%esi}.
+
+  \-
+
+  The location is specified through the row by \argument{\%ecx} and the
+  column by \argument{\%edx}. Note that the row and column are starting at
+  index 0. As such, the upper left corner has coordinates $(0,0)$.
+
+  \-
+
+  Finally, the student should ignore the end of line as this will not be
+  tested. Besides, colors can be changed but will not be considered by
+  the evaluation system. Moreover, the special characters such as \code{'\textbackslash r'},
+  \code{'\textbackslash t'} \etc{} will not be tested either.
+}
+
+% elf
+\subsection{ELF}
+
+The final exercise of the \name{k0} stage consists in writing the core
+functionality of any boot loader: loading the kernel binary from a device
+into memory and executing it.
+
+Since most kernels are written in high-level languages such as \name{C} or
+\name{C++}, such binaries are actually packaged according to a flexible format,
+the most common one on \name{UNIX} systems being the \name{ELF - Executable
+and Linking Format}.
+
+\begin{center}
+  \begin{tabular}{|p{5cm}|p{5cm}|l}
+    \cline{1-2}
+
+    \centering{\textbf{File}} &
+    \centering{\textbf{Space}} &
+    \\
+
+    \cline{1-2}
+
+    \centering{\location{ex6/ex6.S}} &
+    \centering{$145$ bytes} &
+    \\
+
+    \cline{1-2}
+  \end{tabular}
+\end{center}
+
+Note that an \name{ELF} example binary is provided on the \name{Wiki}. As
+mentioned earlier, boot loaders are usually located on the first sector
+of the boot image being on a floppy or hard drive. Then follows, on one or
+more sectors the kernel, the role of the boot loader being to load the kernel
+sectors and execute it.
+
+The following command shows how to create a bootable image given a boot loader
+binary and an \name{ELF} kernel:
+
+\begin{verbatim}
+  $> cat bootsector kernel.elf /dev/zero | dd bs=512 count=2880 of=disk.img
+\end{verbatim}
+
+The \name{ELF} is a complex format composed of headers, segments and tables
+referencing them. The kernel binary will therefore have to be parsed in order
+to extract the code and its entry point on which the boot loader will have
+to jump to transfer the execution flow to the kernel.
+
+An overview of the \name{ELF} is given on the \name{Wiki} though the student
+may want to read a more detailed documentation.
+
+\command{kernel\_preload}
+{
+  This function loads into memory the number of sectors given into
+  \argument{\%al}, from the drive specified in \argument{\%dl}, starting from
+  the second sector. Note that it is the responsability of this function
+  to initialize the drive.
+
+  \-
+
+  In addition, the function must switch to the \name{Protected Mode} and
+  return into \argument{\%eax} the address of the memory area where sectors
+  have been loaded \ie{} the location of the \name{ELF} in memory. Since the
+  code calling this function is obviously running in $16$-bit, an additional
+  $16$-bit zero will be pushed before calling \code{kernel\_preload} in
+  order to successfully retrieve the return address in its $32$-bit format.
+
+  \-
+
+  Noteworthy is that this function must succeed even if the kernel image
+  spans over multiple sectors.
+}
+
+\command{elf\_load}
+{
+  This function parses the \name{ELF} file located at the address given in
+  \argument{\%esi}, loads its segments into memory, and executes its
+  entry point, assuming that the \name{kernel\_preload()} function has been
+  called prior to this function.
+}

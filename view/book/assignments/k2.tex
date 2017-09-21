@@ -1,0 +1,436 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/book/assignments/k2.tex
+%
+% created       julien quintard   [fri nov 28 05:25:37 2008]
+% updated       julien quintard   [tue apr 12 07:41:20 2011]
+%
+
+%
+% ---------- k2 ---------------------------------------------------------------
+%
+
+\chapter{k2}
+\label{chapter:k2}
+
+The \name{k2} stage consists for students to provide the microkernel a
+complete set of memory management functionalities.
+
+Modern kernels rely on virtual memory for ensuring isolation between the
+various entities, thus creating what is commonly referred as
+\name{address spaces}.
+
+Virtual memory offers many advantages compared to the ancient segmentation
+model present on \name{Intel} architectures. Besides, though implemented
+differently, most architectures now provide a paging system, hence easing
+the task consisting in porting a kernel on several microprocessor
+architectures.
+
+Throughout this stage, students will learn the notions listed below:
+
+\begin{itemize}
+  \item
+    \term{Paging}
+
+    \-
+
+    Students will have to implement low-level functions for setting up,
+    updating and deleting \name{PD - Page Directories} and
+    \name{PT - Page Table}s. In addition, students will have to
+    implement higher-level functions in order to ease the common operation
+    consisting in mapping a \name{region} to a \name{segment}.
+  \item
+    \term{Debugging}
+
+    \-
+
+    Unfortunately, the paging mechanism has the tendency to generate an
+    awful number of subtile mistakes which are difficult to spot. Debugging
+    therefore plays an important role in this stage as students able to
+    quickly identify the source of the error will be far more efficient than
+    the ones who cannot.
+
+    \-
+
+    Thus, students will have to rely on exceptions and the interrupt handling
+    mechanism set up throughout \name{k1} in order to easily locate the
+    page which is responsible for the error.
+  \item
+    \term{Hardware Techniques}
+
+    \-
+
+    Finally, students will learn that a number of hardware techniques
+    and optimisations have been invented over the years such as the
+    \name{Identiy Mapping} or the \name{Mirroring Technique}, some of which
+    students may need to use.
+\end{itemize}
+
+\newpage
+
+%
+% ---------- text -------------------------------------------------------------
+%
+
+%
+% requirements
+%
+
+\section{Requirements}
+
+Every student should read the chapter titled \name{Paging} from the
+\name{IA-32 Architectures Software Developer's Manual, Volume 3A: System
+Programming Guide, Part 1}; this chapter contains everything necessary for
+implementing this stage.
+
+In addition, students are encouraged to read the chapter \name{Protection}
+which contains material regarding the \name{Intel} ring-based protection
+mechanism.
+
+%
+% assignments
+%
+
+\section{Assignments}
+
+Although kaneton already embeds several managers related to memory management,
+the microkernel is devoid of an implementation on the \name{IA32} educational
+architecture.
+
+The assignments for this stage consists for the student to implement the
+missing functionalities especially related to the \name{Intel} microprocessor
+architecture.
+
+% core
+\subsection{Core}
+
+The core is composed of four managers involved in the memory management.
+
+The \name{segment} manager provides functions for managing the physical memory.
+On most platforms, including the \name{ibm-pc}, the physical memory is
+represented by the \name{RAM - Random Access Memory}, though not directly
+accessible. Thus, whenever the kernel or one of its servers needs memory to
+store information, the segment manager is requested.
+
+The \name{region} manager provides the virtual memory capability enabling
+the kernel and its servers to access segments directly.
+
+The \name{as} manager provides the possibility to reserve an address space,
+itself containing a set of segments as well as a set of regions mapping some of
+the segments.
+
+Finally, the \name{map} manager provides high-level functions for easily
+reserving, resizing and releasing memory without dealing with segments and
+regions or any identifier.
+
+% as
+\subsubsection*{as}
+
+\begin{itemize}
+  \item
+    \location{kaneton/core/as/as.c}
+  \item
+    \location{kaneton/core/include/as.h}
+\end{itemize}
+
+Every address space is linked to its task and contains a set of segments
+and a set of regions. In other words, an address space object references all
+the physical memory owned by the address space along with the areas of
+virtual memory mapping the segments, making these segments accessible directly.
+
+Although the as manager's core is complete, students should have a look at
+it.
+
+% region
+\subsubsection*{region}
+
+\begin{itemize}
+  \item
+    \location{kaneton/core/region/region.c}
+  \item
+    \location{kaneton/core/include/region.h}
+\end{itemize}
+
+The region manager provides a collection of functions for managing regions
+\ie{} areas of virtual memory.
+
+As for the as manager, this manager is already complete but students
+should browse through its source code to fully understand its purpose.
+
+% glue
+\subsection{Glue}
+
+The segment manager's glue implements the segment manager's machine through
+the \name{Intel} segmentation model while the region manager's glue relies on
+the paging mechanism for providing virtual memory.
+
+The particularity of the \name{ia32} architecture compared to the kaneton
+design is that \name{Intel}'s paging system assigns permissions to virtual
+pages while kaneton assigns permissions to segments \ie{} physical memory.
+This difference requires the kaneton machine to adapt by setting pages'
+permissions according to the permissions associated with the segment to map.
+
+% as
+\subsubsection*{as}
+
+\begin{itemize}
+  \item
+    \location{kaneton/machine/glue/ibm-pc.ia32/educational/as.c}
+  \item
+    \location{kaneton/machine/glue/ibm-pc.ia32/educational/include/as.h}
+\end{itemize}
+
+The as manager's glue is already complete though the student may want to extend
+it.
+
+A particular attention should be paid to the \code{glue\_as\_reserve()}
+function which initializes the address space depending on its nature,
+either the kernel address space, or one of the server's.
+
+% region
+\subsubsection*{region}
+
+\begin{itemize}
+  \item
+    \location{kaneton/machine/glue/ibm-pc.ia32/educational/region.c}
+  \item
+    \location{kaneton/machine/glue/ibm-pc.ia32/educational/include/region.h}
+\end{itemize}
+
+The region manager's glue must perform the necessary operations in order to
+satisfy the core request according to the underlying machine.
+
+For instance, given a \code{region\_reserve()} request, the glue should
+probably rely on the architecture in order to map the segment by updating
+the page directory and tables accordingly.
+
+The student must therefore complete the region manager's glue by implementing
+the necessary functions in order to provide the virtual memory mechanism.
+
+% architecture
+\subsection{Architecture}
+
+The \name{ia32/educational} implementation provides mostly empty files
+with the exception of some skeleton functions in \location{paging.c}.
+Students are welcome to change everything as long as the name and prototype
+of the functions \code{architecture\_paging\_pdbr()},
+\code{architecture\_paging\_map()} and \code{architecture\_paging\_unmap()}
+remain unchanged as these functions are directly referenced by the tests.
+
+% pd
+\subsubsection*{pd}
+
+\begin{itemize}
+  \item
+    \location{kaneton/machine/architecture/ia32/educational/pd.c}
+  \item
+    \location{kaneton/machine/architecture/ia32/educational/include/pd.h}
+\end{itemize}
+
+This file should contain functions for manipulating \name{PD - Page
+Directories} including building a page directory inside a given memory
+location, inserting a page directory entry, deleting a page directory
+entry, mapping and unmapping a page directory \etc{}
+
+Students should be careful when implementing such functions especially when
+it comes to mapping and unmapping a page directory. Students must keep
+in mind that the memory management functionalities provided by the core
+cannot be used for setting up a data structure in main memory because such
+functions will probably end up using the page-directory-specific functions
+located in this file. Students must therefore carefully choose the core
+functions to use when memory is needed in order to avoid infinite loops.
+
+% pt
+\subsubsection*{pt}
+
+\begin{itemize}
+  \item
+    \location{kaneton/machine/architecture/ia32/educational/pt.c}
+  \item
+    \location{kaneton/machine/architecture/ia32/educational/include/pt.h}
+\end{itemize}
+
+The file \location{pt.c} is analoguous to \location{pd.c} but instead operates
+on \name{PT - Page Table}s.
+
+% paging
+\subsubsection*{paging}
+
+\begin{itemize}
+  \item
+    \location{kaneton/machine/architecture/ia32/educational/paging.c}
+  \item
+    \location{kaneton/machine/architecture/ia32/educational/include/paging.h}
+\end{itemize}
+
+The \location{paging.c} file should contain functions for setting up the
+paging mechanism or making a given page directory the system's current one.
+
+Besides, the student will have to complete the two most important paging
+functions: \code{architecture\_paging\_map()} takes a segment to map and
+updates the necessary page directory and tables accordingly while
+\code{architecture\_paging\_unmap()} does the opposite. Note that both
+functionalities should rely on the functions provided in \location{pd.c} and
+\location{pt.c} especially in order to temporarily map the necessary page
+tables and update them.
+
+% environment
+\subsubsection*{environment}
+
+\begin{itemize}
+  \item
+    \location{kaneton/machine/architecture/ia32/educational/environment.c}
+  \item
+    \location{kaneton/machine/architecture/ia32/educational/include/environment.h}
+\end{itemize}
+
+Finally, the \location{environment.c} file should be updated. Indeed,
+five \code{FIXME} can be found in the source code, all related to memory
+management.
+
+Note that the page directory set up by the boot loader can be retrieved
+in \code{\_init->machine.pd}. Indeed, it is interesting to discover that the
+kernel, when launched, already evolves in a virtual environment.
+
+The student can actually notice that the boot loader's page directory is
+imported in \code{architecture\_environment\_kernel()} and must then be
+cleaned from all the needless page table entries.
+
+%
+% example
+%
+
+\section{Example}
+
+The following example illustrates the as, segment and region managers by
+setting up a segment being shared between the kernel address space and
+another one.
+
+\begin{verbatim}
+extern m_kernel         _kernel;
+
+t_status                 example(void)
+{
+  i_task                task;
+  i_as                  as;
+  i_segment             segment;
+  i_region              region;
+  o_region*             o;
+  t_uint32*             data;
+
+  /*
+   * kernel
+   */
+
+  if (segment_reserve(_kernel.as,
+                      ___kaneton$pagesz,
+                      PERMISSION_READ,
+                      SEGMENT_OPTION_NONE,
+                      &segment) != STATUS_OK)
+    CORE_ESCAPE("unable to reserve a segment");
+
+  if (region_reserve(_kernel.as,
+                     segment,
+                     0x0,
+                     REGION_OPTION_NONE,
+                     0x0,
+                     ___kaneton$pagesz,
+                     &region) != STATUS_OK)
+    CORE_ESCAPE("unable to reserve a region");
+
+  if (region_get(_kernel.as, region, &o) != STATUS_OK)
+    CORE_ESCAPE("unable to retrieve the region object");
+
+  data = (t_uint32*)o->address;
+
+  *data = 0x42;
+
+  /*
+   * server
+   */
+
+  if (task_reserve(TASK_CLASS_GUEST,
+                   TASK_BEHAVIOUR_INTERACTIVE,
+                   TASK_PRIORITY_INTERACTIVE,
+                   &task) != STATUS_OK)
+    CORE_ESCAPE("unable to reserve a guest task");
+
+  if (as_reserve(task, &as) != STATUS_OK)
+    CORE_ESCAPE("unable to reserve an address space");
+
+  if (region_reserve(as,
+                     segment,
+                     0x0,
+                     REGION_OPTION_NONE,
+                     0x0,
+                     ___kaneton$pagesz,
+                     &region) != STATUS_OK)
+    CORE_ESCAPE("unable to reserve a region");
+
+  CORE_LEAVE();
+}
+\end{verbatim}
+
+%
+% advices
+%
+
+\section{Advices}
+
+This section contains advices that students are welcome to consider:
+
+\begin{itemize}
+  \item
+    Students should set a page fault handler displaying the instruction causing
+    the fault along with the reason and the address of the page being accessed.
+
+    \-
+
+    Such a simple handler would provide students precious information for
+    debugging this stage in which page faults are common.
+  \item
+    It is strongly advised for students to implement functions dumping the
+    state of a given page directory or table.
+
+    \-
+
+    Once again, such functions would make the debugging process considerably
+    simpler. Indeed, via these functions students could make sure the mappings
+    are correct but also that some flags are not responsible for an
+    unexpected behaviour.
+  \item
+    Note that permissions, supervisor or user, can be assigned to page
+    directory/table entries. These permissions can actually be the cause
+    of errors and should therefore be considered carefully.
+  \item
+    Finally, remember that any change to the current page directory/table
+    hierarchy must be followed by cache invalidations in order to maintain
+    consistency.
+  \item
+    Note that for some versions of \name{GCC}, bit-fields cannot be used
+    when it comes to certain types such as \code{char}. As such, defining
+    a structure as follows may result in a compilation warning and an
+    incorrectly packed archive:
+
+    \-
+
+    \begin{verbatim}
+      typedef struct
+      {
+        t_uint32       addr0: 8;
+        char           flags: 3;
+        [...]
+      }                __attribute__ ((packed)) t_pte;
+    \end{verbatim}
+
+    \-
+
+    It is therefore recommended to always rely on the kaneton types:
+    \code{t\_uint8}, \code{t\_uint16}, \code{t\_uint32}, \code{t\_uint64}
+    \etc{}
+\end{itemize}

@@ -1,0 +1,347 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% created       julio guerra   [sat mar 22 12:33:00 2014]
+%
+%
+% ---------- setup ------------------------------------------------------------
+%
+
+%
+% path
+%
+
+\def\path{../../..}
+
+%
+% template
+%
+
+\input{\path/template/examclass.tex}
+
+\newcommand{\class}{NSE}
+\newcommand{\examdate}{2014}
+\newcommand{\timelimit}{3h}
+\newcommand{\school}{EPITA}
+
+%
+% exam
+%
+\begin{document}
+
+%
+% cover header
+%
+
+\begin{center}
+  {\LARGE Noyaux et Systèmes d'Exploitation}\\
+  \vspace{1cm}
+  \textbf{Durée: 3 heures}\\
+  \textbf{Documents et calculatrices interdits}\\
+  \scriptsize{Les résultats des calculs sous forme non-développée sont admis.}\\
+  \scriptsize{Les questions bonus donnent des points sommés à la note finale du partiel.}\\
+  \scriptsize{Une copie bien présentée sera toujours mieux notée qu'une autre.}
+\end{center}
+\vspace{1cm}
+
+%
+% ---------- questions --------------------------------------------------------
+%
+
+\begin{questions}
+
+%
+% architecture
+%
+\titledquestion{Architecture}
+Face à l'euphorie de la communauté devant linux, A. Tanenbaum écrit en 1992 que "linux est obsolète". L. Torvalds intervient alors et marque le début d'un long débat à propos de l'architecture des OS: monolithique pour linux (Torvalds), micro-noyau pour minix (Tanenbaum). Tanenbaum affirme que les "micro-noyaux ont gagné" face aux vieux noyaux monolithiques, or linux réintroduit une architecture monolithique.
+
+\begin{parts}
+  % q
+  \part[4] Quels sont les arguments de A. Tanenbaum en faveur des architectures micro-noyau?
+
+  % q
+  \part[4] Quels sont les arguments de L. Torvalds en faveur des architectures monolithiques?
+\end{parts}
+
+%
+% boot
+%
+\titledquestion{Boot}
+
+\begin{parts}
+  \part Firmware
+  \begin{subparts}
+    % q
+    \subpart[1] Quel est le rôle d'un firmware?
+
+    % q
+    \subpart[1] Pourquoi les firmwares sont-ils en ROM (Read-Only Memory)?
+
+    % q
+    \subpart[1] Quelle est généralement la premère tâche réalisée par un firmware en ROM?
+
+    % q
+    \subpart Le BIOS fait office de firmware sur les ordinateurs IBM-PC.
+    \begin{subsubparts}
+      % q
+      \subsubpart[1] Comment s'interface un bootloader avec le BIOS?
+
+      % q
+      \subsubpart[4] Donner deux assertions (contrat d'interface) nécessaires "en sortie" du BIOS pour qu'un bootloader tel que GRUB puisse correctement s'exécuter?
+    \end{subsubparts}
+  \end{subparts}
+
+  \part{Bootloader}
+  \begin{subparts}
+    % q
+    \subpart[1] Quel est le rôle d'un bootloader?
+
+    % q
+    \subpart[1] Pourquoi les bootloaders historiques des ordinateurs IBM-PC se décomposent-ils en plusieurs binaires?
+
+    % q
+    \subpart[4] Proposer une interface (control-flow ou data-flow ou contrat) bootloader/OS sur laquelle pourrait se reposer votre OS.
+  \end{subparts}
+
+  % q
+  \bonuspart[1]
+Soit un système pouvant démarrer sous différents modes, maintenance et opérationnel, en fonction de la position d'un interrupteur. Proposer et justifier les interfaces firmware/bootloader et bootloader/OS permettant de réaliser ce système. Chaque mode à son propre binaire en ROM. Le mode maintenance permet de télécharger un nouveau binaire pour le mode opérationnel.
+\end{parts}
+
+%
+% interruptions
+%
+\titledquestion{Interruptions}
+
+\begin{parts}
+  % q
+  \part[1] Donner une solution apportée par les interruptions.
+
+  %q
+  \part
+  \begin{subparts}
+    % q
+    \subpart[2] Pourquoi cherche-t-on à limiter le nombre d'interruptions et leurs durées de traitement?
+
+    % q
+    \subpart[2] En quoi cela améliore-t-il les performances de manière significative, notamment en cas de charge importante? Pour ce faire, vous pouvez détailler le traitement d'arrivée d'un paquet réseau.
+  \end{subparts}
+
+  % q
+  \part[2] Pourquoi le top d'horloge (tick) d'un système général est particulièrement adapté au mode "edge-triggered"?
+
+  % q
+  \bonuspart[1] Comment sont gérées les interruptions dans un contexte multi-coeur?
+\end{parts}
+
+%
+% memoire
+%
+\titledquestion{Mémoire}
+
+\begin{parts}
+  % q
+  \part[2] Donner deux différences entre la ségmentation et la pagination.
+
+  % q
+  \part[1] Quel est l'inconvénient de la technique de mirroring?
+
+  % q
+  \part[4] Proposer une alternative au mirroring sans en perdre l'avantage majeur.
+
+  % q
+  \part L'un des avantages des processus légers (threads) est qu'ils évitent de vider la TLB lors d'un changement de contexte entre des processus légers d'un même processus.
+  \begin{subparts}
+    % q
+    \subpart[1] Comment est indexée une telle TLB (se vidant lors d'un changement de contexte de processus) ?
+    \begin{solution}
+      Avec l'adresse virtuelle sans l'offset.
+    \end{solution}
+
+    % q
+    \subpart[2] Proposez une modification simple à cette indexation afin d'éviter la vidange de la TLB en cas de changement de contexte entre processus.
+    \begin{solution}
+      Ajout d'un identifiant d'espace d'adressage.
+    \end{solution}
+  \end{subparts}
+
+  % q
+  \part Sur une architecture ayant des adresses virtuelles de 32 bits, \textbf{dessiner} les mappings (association pages virtuelles/pages physique) permettant:
+  \begin{subparts}
+    \subpart[2] au kernel de s'exécuter dans un mode d'adressage réel 16 bits.
+    \subpart[2] à deux processus de partager un buffer.
+    \subpart[2] d'utiliser la technique de "copy-on-write" après un appel système `fork'.
+  \end{subparts}
+
+  % q
+  \bonuspart[1] Comment permettre le partage de code (bibliothèque partagée) avec la ségmentation?
+\end{parts}
+
+%
+% Multi-tache / Ordonnancement %
+%
+\titledquestion{Multi-tâche \& Ordonnancement}
+
+\begin{parts}
+
+  % q processus
+  \part
+  \begin{subparts}
+    % q
+    \subpart[2] Comment sont catégorisées les tâches que l'on retrouve dans les systèmes généraux? Quelles sont leur caractéristique?
+    \begin{solution}
+      \begin{itemize}
+      \item Interactif: beaucoup d'E/S => exécution courte (réveil, traitement, nouvelle E/S) => rend la main vite.  1 point
+      \item Traitement | Batch | Traitement par lot: utilisation du CPU intensive (e.g. calcul mathématique, etc.). 1 point
+      \end{itemize}
+    \end{solution}
+
+    % q
+    \subpart[2] Quels sont leur objectif?
+    \begin{solution}
+      \begin{itemize}
+      \item Intéractif: temps de réponse le plus faible possible. (1 point)
+      \item Batch: temps d'exécution (jusqu'à complétude) le plus faible possible - exécution la plus rapide que possible - exécution la moins interrompue que possible.
+      \end{itemize}
+    \end{solution}
+
+    % q
+    \subpart[2] Proposer une heuristique simple permettant de déterminer à quelle catégorie appartient un processus.
+    \begin{solution}
+      Plusieurs réponses possibles:
+      \begin{itemize}
+      \item Mémorisation des temps d'exécution => une tâche avec un temps d'exécution faible est interactive, une tâche avec un temps d'exécution grand est “batch”.
+      \item Mémorisation des nombre de blocage avant la fin du quantum => une tâche avec beaucoup de blocage est interactive, une tâche avec peu de blocage est batch.
+      \item n'importe quoi de correct :)
+      \end{itemize}
+    \end{solution}
+  \end{subparts}
+
+  % q
+  \part Les ordonnanceurs circulaires mémorisent la liste des processus prêts et chaque processus n'apparaît qu'une seule fois dans cette liste.
+  \begin{subparts}
+    %q
+    \subpart[1] Que se passerait-il si un processus y apparaissait deux fois?
+
+    %q
+    \subpart[1] Pourquoi permettrait-on l'insertion multiple d'un processus dans cette liste?
+  \end{subparts}
+  \begin{solution}
+    Il serait élu deux fois plutôt qu'une à chaque tour complet de la liste des processus. Intéressant pour favoriser des processus pour implémenter un système primitif à priorité.
+  \end{solution}
+
+  % q
+  \part[2] La plupart des ordonnanceurs circulaires utilisent un quantum fixe. Donner un argument en faveur d'un petit quantum et un autre en faveur d'un grand quantum, ainsi que la catégorie de processus favorisé.
+  \begin{solution}
+    \begin{itemize}
+    \item Petit quantum => temps de réponse élevé. Favorise les processus interactifs.  (1 point)
+    \item Grand quantum => temps CPU utile élevé. Favorise les processus batch. (1 point)
+    \end{itemize}
+  \end{solution}
+
+\end{parts}
+
+%
+% concurrence
+%
+\titledquestion{Concurrence}
+\begin{parts}
+
+  \part
+  \begin{subparts}
+    % q
+    \subpart[1] Qu'est-ce qu'un changement de contexte matériel (hardware context switch)?
+
+    % q
+    \subpart[1] Qu'est-ce qu'un changement de contexte logiciel (software context switch)?
+
+    % q
+    \subpart[2] Quels sont leurs avantages et inconvénients?
+  \end{subparts}
+
+  \part
+  \begin{subparts}
+    % q
+    \subpart[1] En quoi consiste l'implémentation d'une bibliothèque de processus légers en mode utilisateur (user-mode threads)?
+
+    % q
+    \subpart[1] En quoi consiste l'implémentation d'une bibliothèque de processus légers en mode noyau (kernel-mode threads)?
+
+    % q
+    \subpart[4] Quels sont leurs avantages et inconvénients?
+
+    % q
+    \subpart[1] Que sont les activations d'ordonnanceur (scheduler activations)?
+  \end{subparts}
+
+  \part
+  \begin{subparts}
+    % q
+    \subpart[2] Quelles sont les particularités des deux principales architectures logicielles multi-coeur: SMP et NUMA?
+
+    % q
+    \subpart[2] Citer quelques éléments à prendre en compte lors de l'implémentation d'un ordonnanceur sur ces deux architectures.
+  \end{subparts}
+
+  % q
+  \bonuspart[1] Dans un processeur moderne, il existe plusieurs niveaux de caches. Comment sont-ils gérés dans un contexte multi-coeur?
+
+\end{parts}
+
+%
+% virtualisation
+%
+\titledquestion{Virtualisation}
+\begin{parts}
+
+  % q
+  \part[1] En quoi consiste la translation dynamique de code?
+
+  % q
+  \part La virtualisation a pour philosophie d'intercepter toute exception et instruction privilégiée en forçant une transition vers l'hyperviseur.
+  \begin{subparts}
+    \subpart Dans le cas \textbf{sans} support matériel de virtualisation:
+      \begin{subsubparts}
+        % q
+        \subsubpart[1] Donner un exemple d'instruction privilégiée à intercepter.
+
+        % q
+        \subsubpart[2] Dessiner et expliquer brièvement le flot de contrôle (control-flow) d'un appel système fait par une application s'exécutant sur l'OS guest.
+
+        % q
+        \subsubpart[1] Quel est l'inconvénient majeur de ce mode d'hypervision?
+      \end{subsubparts}
+
+      % q
+      \subpart Dans le cas \textbf{avec} support matériel de virtualisation:
+      \begin{subsubparts}
+        % q
+        \subsubpart[1] Quel est l'ajout majeur au matériel permettant de supporter la virtualisation?
+
+        % q
+        \subsubpart[2] Dessiner et expliquer brièvement le flot de contrôle (control-flow) d'un appel système d'une application s'exécutant sur l'OS guest.
+
+        % q
+        \subsubpart[1] Quel est l'avantage majeur de ce mode d'hypervision?
+
+      \end{subsubparts}
+  \end{subparts}
+
+  % q
+  \bonuspart[1] Les hyperviseurs communéments utilisés aujourd'hui (vmware, xen...) sont dits hybrides. Expliquer en quoi le sont-ils avec des exemples concrets de ce mode hybride.
+
+\end{parts}
+
+\end{questions}
+
+%
+% grading table
+%
+\gradingtable
+
+\end{document}

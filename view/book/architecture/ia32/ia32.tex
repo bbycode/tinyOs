@@ -1,0 +1,110 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/book/architecture/ia32/ia32.tex
+%
+% created       julien quintard   [mon may 14 19:18:46 2007]
+% updated       julien quintard   [mon jan 31 14:28:25 2011]
+%
+
+%
+% ---------- setup ------------------------------------------------------------
+%
+
+%
+% path
+%
+
+\def\path{../../..}
+
+%
+% template
+%
+
+\input{\path/template/book.tex}
+
+%
+% header
+%
+
+\lhead{\scriptsize{The kaneton microkernel :: ia32}}
+
+%
+% title
+%
+
+\title{The kaneton microkernel :: ia32 \\
+       \version
+       \logo}
+
+%
+% document
+%
+
+\begin{document}
+
+%
+% title
+%
+
+\maketitle
+
+%
+% --------- text --------------------------------------------------------------
+%
+
+This document describes the kaneton microkernel reference project over
+Intel IA-32 architecture on IBM-PC platform (for educational purpose).
+
+\-
+
+This document should be used by every student willing implement the
+kaneton microkernel as people looking for more details on the kaneton
+microkernel implementation on Intel architecture.
+
+\-
+
+All the kaneton documents are available on
+the official website
+  \footnote{\location{http://kaneton.opaak.org}}.
+
+\-
+
+\textbf{Prerequisites}: this document details the kaneton implementation
+for IA-32 architecture on IBM-PC platform (for educational purpose). A
+knowledge of this architecture's basics is strongly recommended as
+this document is not intended to be an IA-32 lesson (see
+\textit{Bibliography} for references).
+
+%
+% table of contents
+%
+
+\tableofcontents
+
+%
+% identation
+%
+
+\indentation{}
+
+%
+% chapters
+%
+
+\input{overview.tex}
+\input{bootloader.tex}
+\input{memory.tex}
+\input{event.tex}
+\input{timer.tex}
+\input{task.tex}
+\input{io.tex}
+\input{syscalls.tex}
+\input{references.tex}
+\input{bibliography.tex}
+
+\end{document}

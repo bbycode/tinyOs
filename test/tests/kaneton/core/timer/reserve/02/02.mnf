@@ -1,0 +1,9 @@
+name: core/timer/reserve/02
+description: This test sets up a single timer. Finally, the timer is released.
+symbol: test_core_timer_reserve_02
+signature: awf90iwvmsd3jfgwg
+output:
+points: 2
+timeout:
+  qemu: 12
+  xen: 3

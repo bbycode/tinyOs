@@ -1,0 +1,230 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/book/development/rules.tex
+%
+% created       julien quintard   [mon may 28 19:44:49 2007]
+% updated       julien quintard   [fri aug  1 15:51:30 2008]
+%
+
+%
+% ---------- rules ------------------------------------------------------------
+%
+
+\chapter{Rules}
+\label{chapter:rules}
+
+This chapter describes the rules which apply to the whole kaneton microkernel
+project. These rules can therefore be considered as the most important ones.
+
+\newpage
+
+%
+% ---------- text -------------------------------------------------------------
+%
+
+% kaneton
+
+\subsubsection{kaneton}
+
+The most important thing when contributing or talking about a project is
+to know how to write its name.
+
+The authors of the project decided kaneton must be written in lower case:
+\textbf{kaneton}. The same goes for the kaneton project names which contain
+a \textit{k} letter in lower-case: \name{k1}, \name{k2}, \name{k3} and
+so on.
+
+Also remember that the kaneton project is composed of two distincts
+sub-projects named, the \name{kaneton microkernel educational project} and the
+\name{kaneton microkernel research project}.
+
+% header
+
+\subsubsection{Header}
+
+Files must start with a file header. This file header specifies the
+project name, the license of this file, the file name, the author and
+date of the file creation and finally the author and date of the last
+edition. This header must comply to the following template, depending
+on the sequence of characters used for comments. The example below illustrates
+the template for \name{C} files.
+
+\begin{verbatim}
+  /*
+   * ---------- header --------------------------------------------------------
+   *
+   * project       <project>
+   *
+   * license       <license>
+   *
+   * file          <file location>
+   *
+   * created       <first author>   [<creation date>]
+   * updated       <last author>   [<last update date>]
+   */
+\end{verbatim}
+
+Then, an example for {\LaTeX} files:
+
+\begin{verbatim}
+  %
+  % ---------- header ---------------------------------------------------------
+  %
+  % project       kaneton
+  %
+  % license       kaneton
+  %
+  % file          /home/mycure/kaneton/view/book/development/community.tex
+  %
+  % created       julien quintard   [mon may 28 19:44:49 2007]
+  % updated       julien quintard   [mon may 28 19:48:07 2007]
+  %
+\end{verbatim}
+
+Note that the kaneton project provides an \name{Emacs} file which contains
+everything necessary to build such headers. This file is located on the
+developers' private \name{Wiki} \aka{} the \name{Developers Intranet}.
+
+Obviously, the project and license fields must be filled, in the kaneton
+project context, with \name{kaneton} and \name{kaneton}, respectively. The
+author field must contain the author's full name - firsname and lastname -
+in lower-case letters. Note that auto-generated values must comply to
+the general kaneton rules especially they must be in lower-case letters and
+must not exceed $80$ characters in width.
+
+% markings
+
+\subsubsection{Markings}
+
+Any developer must put the sequence \code{XXX} everywhere a piece of code
+is considered as unfinished. This way, any unfixed piece of code can be
+easily retrieved via a very simple command line or script.
+
+% naming
+
+\subsubsection{Naming}
+
+When using a language which does not support namespaces, the developer should
+prefix every entity by the package, module \etc{} name it actually belongs to.
+
+As long as it is possible, entities must be named with a \textit{unique}
+word, excluding the namespace prefix.
+
+Names must obviously be expressed in English, lower-case letters and
+without any spelling mistake.
+
+Composite names should be separated by a dash \textit{-} when the language
+allows it, including file names. Otherwise, the underscore character
+\textit{\_} must be used.
+
+% layout
+
+\subsubsection{Layout}
+
+Files are composed of sections in order to make the organisation clearer.
+Each section starts with a specific header and then contains code, text \etc{}
+related to the section.
+
+A section header is basically a commented separator.
+
+Any file must include a \name{header} section as explained above. Moreover,
+some sections are mandatory depending of the type of file. For instance,
+even configuration files, description files, frame file, \name{Python}
+files \etc{} must provide an \name{information} section.
+
+Below is an example of a \name{Python} script which illustrates the
+use of sections:
+
+\begin{verbatim}
+  #
+  # ---------- header ---------------------------------------------------------
+  #
+  # project       kaneton
+  #
+  # license       kaneton
+  #
+  # file          /home/mycure/kaneton/foo/foo.py
+  #
+  # created       julien quintard   [sun may 13 11:04:52 2007]
+  # updated       julien quintard   [mon may 28 12:42:57 2007]
+  #
+
+  #
+  # ---------- information ----------------------------------------------------
+  #
+  # this script is used to illustrates the use of sections in kaneton
+  # files.
+  #
+
+  #
+  # ---------- imports --------------------------------------------------------
+  #
+
+  import env
+
+  import sys
+  import re
+
+  #
+  # ---------- globals --------------------------------------------------------
+  #
+
+  g_string = `kaneton'
+
+  #
+  # ---------- functions ------------------------------------------------------
+  #
+
+  #
+  # main()
+  #
+  # this function does the main work: displaying a string.
+  #
+  def			main():
+    env.display(env.HEADER_NONE, g_string, env.OPTION_NONE)
+
+  #
+  # ---------- entry point ----------------------------------------------------
+  #
+
+  if __name__ == "__main__":
+    main()
+\end{verbatim}
+
+Files related to any language should provide a section for the core
+content like \name{rules} for \name{Make} files or \name{functions}
+for many other languages.
+
+For more information on the mandatory sections, please refer to
+the sections about the language your are interested in and/or look at
+examples in the kaneton repository.
+
+However, note that a section which does not contain any code must not
+appear in the file.
+
+Files must not exceed $80$ characters in width, including the trailing newline
+character. Moreover, the \name{DOS} \name{CR+LF} line terminator must not be
+used. Finally, there must not be any whitespace at the end of a line.
+
+An indentation a two spaces must be used. Moreover, the \name{Emacs}
+default indentation must always be taken as a referencial.
+
+% rules
+
+\subsubsection{Rules}
+
+Any contributor which notices a misuage of these rules must inform the
+kaneton community and especially its supervisor so that the mistake can be
+corrected.
+
+Moreover if something is missing in this book, any contributor is welcomed
+to inform the community about it so that a rule is added or modified.
+
+Contributors are asked to read the rules enumerated in this book but also
+to look at the kaneton repository as it contains many examples of applications
+of these rules.

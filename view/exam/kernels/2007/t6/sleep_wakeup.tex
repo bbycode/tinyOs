@@ -1,0 +1,60 @@
+\section*{Exercice 4 : Sleep/Wakeup (5.5 points)}
+
+{\bf \emph{sleep}/\emph{wakeup} :}
+
+Le mécanisme \emph{sleep} /\emph{wakeup} existe depuis les plus vieux
+Unix.
+
+\emph{sleep} est utilisé pour endormir un thread et \emph{wakeup} pour
+le r\'eveiller. Le deux fonctions prennent en param\`etre un identifiant
+unique. Un appel \`a \emph{wakeup} avec un identifiant donné reveille
+\textbf{tous} les threads ayant appel\'e \emph{sleep} avec ce m\^eme
+identifiant. La fonction \emph{wakeup\_once} ne r\'eveille qu'un seul des
+threads bloqués par \emph{sleep} (le premier s'étant endormi).
+
+{\bf Exemple :}
+
+\begin{center}
+\begin{tabular}{| l | l | l | l |}
+thread 1 & thread 2 & thread 3 & thread 4\\
+\ldots & \ldots & \ldots & \ldots \\
+sleep(42); & \ldots & \ldots & \ldots \\
+\emph{sleeping} & \ldots & \ldots & \ldots \\
+\emph{sleeping} & sleep(42); & sleep(123);  & \ldots \\
+\emph{sleeping} & \emph{sleeping} & \emph{sleeping} & \ldots \\
+\emph{sleeping} & \emph{sleeping} & \emph{sleeping} & \ldots \\
+\emph{sleeping} & \emph{sleeping} & \emph{sleeping} & wakeup(42); \\
+\ldots & \ldots & \emph{sleeping} & \ldots \\
+\ldots & \ldots & \emph{sleeping} & \ldots \\
+\end{tabular}
+\end{center}
+
+Dans cet exemple, le thread 1 puis le thread 2 s'endorment avec comme
+identifiant 42. Le thread 3 s'endort avec l'identifiant 123. C'est le
+thread 4 qui r\'eveille les threads 1 et 2.
+
+\begin{description}
+\item {\bf Implémentation dans kaneton}
+
+\begin{enumerate}
+\item
+  Quelles donn\'ees allez-vous devoir associer \`a chaque identifiant
+  pass\'e \`a vos fonctions ?
+  \\
+  \'Ecrivez la structure en C correspondante.
+
+\item
+  \'Ecrivez le code de la fonction \emph{sleep}.\\
+  {\emph{void} \bf sleep}({\em t\_id id)}
+
+\item
+  \'Ecrivez le code de la fonction \emph{wakeup\_once}.\\
+  {\emph{void} \bf wakeup\_once}({\em t\_id id)}
+
+\item
+  \'Ecrivez le code de la fonction \emph{wakeup}.\\
+  {\emph{void} \bf wakeup}({\em t\_id id)}
+
+\end{enumerate}
+
+\end{description}

@@ -1,0 +1,1374 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kane...re/kernels/file-systems/file-systems.tex
+%
+% created       julien quintard   [tue jan 13 05:55:34 2009]
+% updated       julien quintard   [tue may 24 08:00:38 2011]
+%
+
+%
+% ---------- setup ------------------------------------------------------------
+%
+
+%
+% path
+%
+
+\def\path{../../..}
+
+%
+% template
+%
+
+\input{\path/template/lecture.tex}
+
+%
+% title
+%
+
+\title{File Systems}
+
+%
+% document
+%
+
+\begin{document}
+
+%
+% title frame
+%
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+%
+% outline frame
+%
+
+\begin{frame}
+  \frametitle{Outline}
+
+  \tableofcontents
+\end{frame}
+
+%
+% figures
+%
+
+\pgfdeclareimage[interpolate=true,width=220pt]
+                {fat}
+                {figures/fat}
+
+\pgfdeclareimage[interpolate=true,width=200pt]
+                {ext2-overview}
+                {figures/ext2-overview}
+
+\pgfdeclareimage[interpolate=true,width=240pt]
+                {ext2-inode}
+                {figures/ext2-inode}
+
+%
+% ---------- text -------------------------------------------------------------
+%
+
+%
+% introduction
+%
+
+\section{Introduction}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  This course is intended to present file systems through their history,
+  the principles, the access control and so forth.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Need}
+
+  Both operating systems and users need to store data in a permanent way
+  \ie{} so that data can be retrieve after the computer has been shut down.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Equipment}
+
+  Storage devices were early integrated to computers to provide a way
+  to store information starting with punched cards but more recently with
+  hard drives, floppies and so on.
+\end{frame}
+
+% 4)
+
+\begin{frame}
+  \frametitle{Software}
+
+  Providing a storage capacity such as a hard disk does not suffice. Indeed,
+  software must be provided to manage the space provided and possibly organise
+  data, in other words, abstract the hardware into something meaningful to
+  users and applications.
+
+  \-
+
+  As such, many systems rely on the \textbf{file} abstraction, the most popular
+  being \textit{UNIX} because of its motto \textit{``Everything is file''}.
+\end{frame}
+
+%
+% support
+%
+
+\section{Support}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  Although the storage support does not matter much it obviously impact on
+  the file system design.
+
+  \-
+
+  For instance, \textit{Google} relies on the \textit{GFS - Google File System}
+  which has been designed to handle more reads than writes.
+
+  \-
+
+  Besides, according to the storage support speed and capacity, not all
+  file systems will be equally efficient.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{List}
+
+  The storages that are commonly used are listed below:
+
+  \begin{itemize}
+    \item
+      \textit{RAM - Random Access Memory};
+    \item
+      \textit{Flash};
+    \item
+      \textit{Disk};
+    \item
+      \textit{CD-ROM};
+    \item
+      \etc{}
+  \end{itemize}
+\end{frame}
+
+XXX
+
+definition: used to store, catalog and retrieve information from a storage
+  stable or not
+
+abstraction: information is abstracted into files i.e data gathered logically
+  together
+
+objective: keep track of the files stored, including the data but also info
+  on the file itself: file name, etc.. besides the storage capacity needs to
+  be manage to find space etc.
+
+%
+% dinosaurs
+%
+
+\section{Dinosaurs}
+
+% dectape
+
+\subsection{DECTape}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  In the $60s$ early days of computing, computers of the size of refrigerators,
+  hence far smaller than room-wide maiframes, used tapes for storing
+  data in a permanent way.
+
+  \-
+
+  At this age of computing, every computer came with its own operating system
+  and each operating system had its way for accessing the permanently stored
+  data.
+
+  \-
+
+  Therefore, the \textit{DEC} \textit{PDP-11} minicomputer, for instance,
+  had a few instructions in its instruction set for reading and writing blocks
+  of the inserted tape.
+
+  \-
+
+  Note that, no abstraction was provided and the operating system and
+  applications, which were tightly related at this time, had to consider
+  the data directly.
+\end{frame}
+
+% cp/m
+
+\subsection{CP/M}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  \textit{CP/M - Control Program for Microcomputers} was invented by
+  \textit{Gary Kildall} in $1973$.
+
+  \-
+
+  This operating system was able to control at least one floppy disk
+  and provided a way to store information in what was called \textbf{files}.
+
+  \-
+
+  However, although the system provided a way to store files in a flat
+  organisation, the name \textit{file system} was not used yet.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Files}
+
+  \textit{CP/M} actually introduced the file abstraction concept.
+
+  \-
+
+  Files were limited to eight characters and were given a \textbf{extension}
+  composed of three characters following a period.
+
+  \-
+
+  This file extension was used for determining the file type.
+
+  \-
+
+  Although this can be seen as extremely limitating, it was not the case
+  back then since computers suffered the same kind of limitations anyway.
+\end{frame}
+
+%
+% monkeys
+%
+
+\section{Monkeys}
+
+% fat
+
+\subsection{FAT}
+
+% 1)
+
+\begin{frame}
+  \frametitle{QDOS}
+
+  Other people soon got the same idea as \textit{Kildall} and \textit{Tim
+  Patterson} wrote his own operating system called \textit{QDOS - Quick
+  and Dirty Operating System}.
+
+  \-
+
+  \textit{QDOS} was a quickly-writte clone of \textit{CP/M} for $16-bit$
+  computers because it needed an operating system for such machines and
+  \textit{CP/M} did not support it.
+
+  \-
+
+  \textit{QDOS} had a slightly different file system although it provided
+  the same features such as a flat naming model, file extensions \etc{}
+
+  \-
+
+  The \textit{QDOS} file system used an organisation method called
+  \textit{FAT - File Allocation Table} so the file system itself was given
+  the incredibly sticky and imaginative name of \textit{FAT}.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{DOS}
+
+  \textit{Bill Gates} bought \textit{QDOS} for $\$50,000$ and renamed it
+  \textit{MS-DOS} so that he was now able to sell it to \textit{IBM} and
+  every company making \textit{IBM} clones.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Metadata}
+
+  Metadata literally means \textit{``data about data''} and that's exactly
+  what it is.
+
+  \-
+
+  While metadata may sound relatively recent and modern, all file systems
+  right from the very beginning had to store at least some metadata along.
+
+  \-
+
+  However, we can consider \textit{CP/M} file system, hence \textit{FAT},
+  to be the first to introduce metadata the way file systems now use it.
+
+  \-
+
+  A file system is given a storage space. At the very beginning of this
+  storage, a data structure is recorded containing general information
+  about the file system: the \textbf{metadata}.
+
+  \-
+
+  Obviously, depending on the file systems, the metadata give more or less
+  information such as the size of the storage space, the block size,
+  location of other data structures \etc{}
+\end{frame}
+
+% 4)
+
+\begin{frame}
+  \frametitle{FAT}
+
+  As for \textit{CP/M} file system, \textit{FAT} names the files according
+  to a $8-3$ file name/extension scheme.
+
+  \-
+
+  Besides, the way file are stored was designed around the physical structure
+  of floppy disks, the primary storage device of the day.
+
+  \-
+
+  The \textit{File Allocation Table} describes which area of the disk were
+  allocated to files, which were free space and which were damaged and
+  unused, known as \textit{``bad sectors''}.
+
+  \-
+
+  Because each floppy had very little space \ie{} $8 sectors x 40 tracks x
+  512 bytes = 160 KB$, the table itself needed to be very small. To keep it
+  small, the disk was divided into \textbf{clusters}, a cluster---groups
+  of contiguous sectors---hence becoming the smallest storage unit.
+
+  \-
+
+  In order to cope with files bigger than a cluster, the file system uses
+  a \textbf{block chaining} technique by relying on the \textit{FAT} to
+  know what is the next block that contains the data related to a file.
+
+  \-
+
+  Note however that while increasing the cluster size decreases the table
+  size, it also increases internal fragmentation, hence the waste of
+  storage space.
+\end{frame}
+
+% 5)
+
+\begin{frame}
+  \frametitle{Versions}
+
+  The first version of the \textit{FAT} file system was \textit{FAT-12}
+  because it used a $12-bit$ number for counting the clusters: $2^{12} x
+  8KB cluster = 32MB$. The file system was therefore limited to a total
+  storage capacity of $32MB$.
+
+  \-
+
+  Although this sounded reasonable at the time, it was without counting on
+  the amazing evolution of computing. \textit{FAT-12} quickly become
+  far too limited for modern storage devices such as hard disks.
+
+  \-
+
+  \textit{FAT-16}($2 GB$) and even \textit{FAT-32}($8 TB$) were later released
+  for dealing with the increasing storage capacity. It is however interesting
+  to note that, although a plain text string indicates the file system type
+  \textit{``FAT16''}, \textit{``FAT32''} \etc{}, it cannot be used by
+  the file system driver to detect the \textit{FAT} version and a sophisticate
+  computation must be performed according to the storage capacity, cluster
+  size \etc{} This anecdocte explains the \textit{dirty} name-part.
+
+  \-
+
+  Later came \textit{VFAT - Virtual FAT} that was able to handle long
+  file names up to $255$ characters. However, for compatibility reason, a
+  short name was also created: \textit{``TETON~1.TXT''} for instance.
+\end{frame}
+
+% 6)
+
+\begin{frame}
+  \frametitle{Directories}
+
+  Id did not really matter that \textit{FAT} did not provide any way to
+  organise files because, on a floppy disk, only a few files could be stored
+  anyway.
+
+  \-
+
+  However, since \textit{IBM} was about to release the \textit{PC-XT} with
+  an optional $20 MB$ hard disk, it would be better if this enormous space
+  could be organised.
+
+  \-
+
+  Therefore, the \textbf{directory} concept was introduced, using the
+  backslash character as a separator.
+\end{frame}
+
+% 7)
+
+\begin{frame}
+  \frametitle{Example}
+
+  \begin{center}
+    \pgfuseimage{fat}
+  \end{center}
+\end{frame}
+
+% 8)
+
+\begin{frame}
+  \frametitle{Summary}
+
+  Although \textit{FAT} has been used for decades, it is nonetheless a
+  very strange piece of software.
+
+  \-
+
+  Among its limitations can be counted:
+
+  \begin{itemize}
+    \item
+      The name length constraint;
+    \item
+      The file size;
+    \item
+      The storage space size limit;
+    \item
+      The internal fragmentation;
+    \item
+      The poor data structure; and
+    \item
+      The lack of features including late directories \etc{}
+  \end{itemize}
+\end{frame}
+
+% ufs
+
+\subsection{UFS}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  The \textit{UFS - Unix File System}, also known as the \textit{Berkeley}
+  \textit{FFS - Fast File System}, came out of the research community devoted
+  to \textit{UNIX}.
+
+  \-
+
+  Among notable improvements and differences with other file systems are
+  the case sensitive names, $32-bit$ pointers and \textbf{cylinder}-grouping
+  to improve disk head movement time.
+
+  \-
+
+  Another interesting thing was introduced to check the file system
+  consistency. Indeed, since file metadata can be corrupted if the computer
+  crashes \etc{}, the tool \textit{FSCK - File System Check} was introduced.
+
+  \-
+
+  Finally, \textit{UFS} introduces the \textbf{links}, both hard and symbolic.
+
+  \-
+
+  Many \textit{UNIX} vendors and other operating systems implemented their
+  own version of \textit{UFS}, often making them incompatible with each
+  other.
+\end{frame}
+
+% partitioning
+
+\subsection{Partitioning}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Introduction}
+
+  Until now, operating system files and user files were stored on the
+  file system such that re-installing the system implied making a backup
+  of the user files.
+
+  \-
+
+  Additionally, an experimented user wishing to use multiple operating system
+  on the same machine could not because every operating system believed
+  to have the whole disk space for its own use.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  \textbf{Partitioning} targets these limitations by enabling the disk to
+  be divided into multiple partitions.
+
+  \-
+
+  Nowadays, this technique has more general purposes such as:
+
+  \begin{itemize}
+    \item
+      Separation of the operating system and user files;
+    \item
+      Possibility to use a special area for swaping;
+    \item
+      Separation of operating systems on a single disk;
+    \item
+      Specialization so that specific-purpose file systems can be used
+      on a partition, providing some advantages over another file system on
+      another partition.
+  \end{itemize}
+
+  \-
+
+  The following will briefly describe the partitioning scheme used on
+  \textit{PC} compatible systems.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{MBR}
+
+  The disk storage space is divided into up to four, and at least one,
+  \textbf{primary} partitions.
+
+  \-
+
+  One of these can be an \textbf{extended} partition, providing a way to
+  have more than four partitions.
+
+  \-
+
+  All these partitions are described by a $16-byte$ entry in the
+  \textbf{partition table} located in the \textit{MBR - Master Boot Record}.
+
+  \-
+
+  Partition table entries contain information such as the status, bootable or
+  not, the start and end address of the partition, in \textit{CHS - Cylinder
+  Head Sector} format, the partition type \etc{}
+
+  \-
+
+  Note that these information are not standardized so that different operating
+  systems and file systems could claim to be using the same partition type
+  for example.
+\end{frame}
+
+% 4)
+
+\begin{frame}
+  \frametitle{Type}
+
+  Primary partitions contain an actual file system. For example, in
+  \textit{MS-DOS} and earlier versions of \textit{Windows}, the first
+  partition, used as \textit{C:/} had to be a primary partition.
+
+  \-
+
+  An extended partition contains a \textit{EBR - Extended Boot Record} that
+  describes logical partitions.
+
+  \-
+
+  In order to allow for a large number of partitions to be created, unlike
+  the primary partitions, the extended partitions are described through
+  a chain of \textit{EBR} descriptors.
+
+  \-
+
+  Each \textit{EBR} describes the partition that generally follows and points
+  to the next descriptor that generally follows the described partitions.
+\end{frame}
+
+% ext2
+
+\subsection{ext2}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  \textit{Ext2} is basically a clone of \textit{UFS} in the very exact way
+  to \textit{Linux} is a clone of \textit{UNIX}.
+
+  \-
+
+  \textit{Ext2} was designed as a successor of \textit{ext} to bring a new
+  file system to the \textit{Linux} operating system.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Design}
+
+  The concepts explained below are the same in \textit{UFS} but are described
+  for \textit{ext2}.
+
+  \-
+
+  Firstly, the file system metadata are known to be stored in the
+  \textbf{superblock}, a special block, at the beginning of the partition.
+
+  \-
+
+  Secondly, files metadata are stored in what are known as \textbf{Inode}s
+  and every \textit{Inode} is identified by a \textit{\textbf{INO} - Inode No}.
+
+  \-
+
+  The partition is divided into \textbf{blocks}, usually of $8 KB$.
+  Besides, in order to keep the file metadata close to the data itself,
+  both are stored in the same \textbf{group} \ie{} \textit{UFS}'s
+  containers.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Details}
+
+  \textit{Ext2} keeps track of allocated blocks inside a group by relying
+  on a very simple data structure: a bitmap.
+
+  \-
+
+  Likewise, a bitmap is used to know which are the \textit{inode} used and
+  which are the one free. Indeed, \textit{inode}s are pre-allocated according
+  to the file system size.
+
+  \-
+
+  Those \textit{inode}s are kept in an \textit{inode} table following the
+  \textit{inode} bitmap.
+\end{frame}
+
+XXX root inode = 2
+XXX superblock located at 1024 in first block
+
+% 4)
+
+\begin{frame}
+  \frametitle{Example}
+
+  \begin{center}
+    \pgfuseimage{ext2-overview}
+  \end{center}
+\end{frame}
+
+% 5)
+
+\begin{frame}
+  \frametitle{Example}
+
+  \begin{center}
+    \pgfuseimage{ext2-inode}
+  \end{center}
+\end{frame}
+
+% 6)
+
+\begin{frame}
+  \frametitle{Example}
+
+  As an example, let's consider a file \textit{teton.txt} located in the root
+  directory.
+
+  \-
+
+  Assuming that the system knows the associated \textit{ino}, it will first
+  start by computing the group in charge of this \textit{ino}.
+
+  \-
+
+  Since the metadata contains information regarding the number of groups,
+  the number of inodes and so forth, the system can easily know in which
+  group lies an inode according to its \textit{ino}.
+
+  \-
+
+  Once the group located, the system will retrieve the \textit{inode} from
+  the \textit{inode} table and then access the data through its pointers,
+  being direct or indirects.
+\end{frame}
+
+% 7)
+
+\begin{frame}
+  \frametitle{Size}
+
+  So, how big can a file be in \textit{ext2}?
+
+  \-
+
+  Let's do the math since we know that the standardised block size is $8 KB$.
+
+  \-
+
+  \begin{eqnarray*}
+    size & = & 8192 + \\
+         &   & \frac{8192}{4} x 8192 + \\
+         &   & \frac{8192}{4}^{2} x 8192 + \\
+         &   & \frac{8192}{4}^{3} x 8192 + \\
+         & = & 70403120701440 B \\
+         & = & 64 TB \\
+  \end{eqnarray*}
+\end{frame}
+
+% 8)
+
+\begin{frame}
+  \frametitle{Fault Tolerance}
+
+  \textit{ext2} provides some fault tolerance features.
+
+  \-
+
+  For example, in order to deal with corrupted metadata, the superblock is
+  replicated at fixed positions in the partition.
+
+  \-
+
+  As such, if the superblock is detected as being corrupted because the magic
+  number is invalid, another superblock is used and the first one is updated,
+  getting back to a consistent state.
+\end{frame}
+
+% 9)
+
+\begin{frame}
+  \frametitle{Summary}
+
+  Although \textit{ext2} has been used for years and is loved by many for
+  being very stable, it still lack a few things though it is undeniably,
+  a clean file system design.
+
+  \begin{itemize}
+    \item
+      The file system consistency is not ensured and must be checked on
+      a regular basis through \textit{fsck};
+    \item
+      Many components are static such as the number of inodes, the number of
+      blocks \etc{} such that it is impossible to have a single big file
+      or millions of small files;
+    \item
+      Some data structures are still very slow, especially the directory
+      entries that must be explored sequentially to find a particular entry;
+    \item
+      Both internal and external fragmentations are still major problems
+      in \textit{ext2}.
+  \end{itemize}
+\end{frame}
+
+% 10)
+
+\begin{frame}
+  \frametitle{Journaling}
+
+  Updating file systems to reflect changes to files and directories usually
+  requires many separate write operations.
+
+  \-
+
+  This introduces a race condition for which an interruption like a power
+  failure between writes can leave data structures in an invalid intermediate
+  state.
+
+  \-
+
+  For example, deleting a file on a \textit{ext2} involves two steps: removing
+  its directory entry and marking space for the file and its inode as free in
+  the free space map.
+
+  \-
+
+  To avoid both leaking space and having to walk through the entire data
+  structure with \textit{fsck}, \textbf{journaling} can be used.
+
+  \-
+
+  A journaled file system maintains a journal of the changes it intends to
+  make, ahead of time. After a crash, recovery simply involves replaying
+  changes from this journal until the file system is consistent again.
+\end{frame}
+
+%
+% cats
+%
+
+\section{Cats}
+
+% reiserfs
+
+\subsection{ReiserFS}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  Because no file system provided a way to prevent corruptions, \textit{Hans
+  Reiser} decided to create his own file system and very modestly name
+  it \textbf{ReiserFS}.
+
+  \-
+
+  \textit{ReiserFS} added not only journaling but attempted to improve
+  many aspects of \textit{ext2} such as dynamic inodes management, tail
+  packing, efficient space management, improved directory handling \etc{}
+
+  \-
+
+  Although \textit{ReiserFS} performance has been measured to be $10-15\%$
+  faster than \textit{ext2}, its extreme complexity and lack of compatibility
+  between versions were largely criticized.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Superblock}
+
+  The superblock is located at byte $65536$, leaving the first $64K$ unused.
+
+  \-
+
+  The superblock is not replicated making the file system vulnerable to
+  metadata corruption.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Blocks}
+
+  The partition can contain a maximum of $2^{32}$ blocks so that the
+  block size might be set according to the file system size factor.
+
+  \-
+
+  Directly following the superblock is a bitmap of free blocks that is used
+  for finding space. As such, if the block size is $4,096K$, a block bitmap
+  keeps track of $32,768$ blocks.
+
+  \-
+
+  More bitmap blocks might be necessary to reference all the file system
+  blocks. Those blocks would simply follow the first bitmap block.
+\end{frame}
+
+% 4)
+
+\begin{frame}
+  \frametitle{Tree}
+
+  \textit{ReiserFS} relies on the \textbf{B+tree} data structure for keeping
+  information. \textit{B+tree}s are very efficient data structures that allows
+  for searches, insertions and deletions in logarithmic time; hence are very
+  suitable for file systems.
+
+  \-
+
+  This special and unique data structure is actually called \textbf{S+tree}
+  in the \textit{ReiserFS} documentation because it has been specifically
+  implemented so that balancing can be deferred until data is commit to the
+  disk; hence improving the performance.
+\end{frame}
+
+% 5)
+
+\begin{frame}
+  \frametitle{Tree}
+
+  The tree is composed of internal and leaf nodes such that every node is
+  a disk block.
+
+  \-
+
+  Each object, called an \textbf{item}, such as files, directories \etc{} is
+  assigned a unique \textbf{key}. Such keys can very much be compared as
+  \textit{ino} in \textit{ext2} for instance.
+
+  \-
+
+  Such keys are actually represented by a tuple $(directory-id, object-id,
+  offset, type)$ so that files belonging to the same directory but also blocks
+  of the same file lie in the same sub-tree.
+
+  \-
+
+  Note that to handle large files, several internal blocks are required to
+  provide enough pointers since a internal block can only contain
+  $(block-size - 48) / 4$ pointers to data blocks.
+\end{frame}
+
+% 6)
+
+\begin{frame}
+  \frametitle{Tail Packing}
+
+  Since most small files are very common in current operating systems,
+  \textit{ReiserFS} has been designed for reducing internal fragmentation
+  by storing those small files at the end of not-fully used blocks.
+
+  \-
+
+  This technique is sometimes called \textbf{tail packing}, \textbf{block
+  sub-allocation} or even \textbf{tail merging}
+
+  \-
+
+  In some scenarios, where the majority of files are smaller than half
+  the block size such as source code files, configuration files \etc{}, tail
+  packing can both increase storage efficiency but also increase performance
+  due to space locality by reading contiguous blocks containing multiple
+  small files.
+
+  \-
+
+  Note that these advantages can be negated by the increased complexity
+  of implementation as it is the case for \textit{ReiserFS}.
+\end{frame}
+
+% 7)
+
+\begin{frame}
+  \frametitle{Journal}
+
+  The \textbf{journal} is composed of few contiguous blocks that follow the
+  blocks bitmap.
+
+  \-
+
+  The journal describes the \textbf{transactions}---operations respecting the
+  \textit{ACID - Atomicity, Consistency, Isolation and Durability}
+  properties---performed on the file system. Therefore, the file system is
+  kept in a consistent state at all times.
+
+  \-
+
+  At a later point, the journal is flushed and, if everything is successful,
+  marked as such so that operations are made effective.
+
+  \-
+
+  Note that originally, journaling was applied only on metadata but
+  \textit{Reiser 4} introduced journaling for both metadata and data.
+\end{frame}
+
+% 8)
+
+\begin{frame}
+  \frametitle{Journal}
+
+  The journal is a circular array that contains \textbf{transactions} needed
+  to be commit on the disk.
+
+  \-
+
+  The first block contains the journal header that specify where the
+  first transaction to process is located in the journal.
+
+  \-
+
+  Every transaction is assigned a transaction identifier and a transaction
+  is considered as to be processed if its identifier is lower than the current
+  identifier which is stored in the journal header.
+\end{frame}
+
+% 9)
+
+\begin{frame}
+  \frametitle{Transaction}
+
+  XXX
+\end{frame}
+
+% 10)
+
+\begin{frame}
+  \frametitle{Epilogue}
+
+  The company responsible for \textit{ReiserFS} decided to discontinue
+  \textit{ReiserFS} stopping maintaining it and to move to \textit{Reiser 4}.
+
+  \-
+
+  Although this has been criticized a lot by the community especially
+  because of the file system complexity; hence difficulty to maintain it,
+  an unexpected event put an end to the project.
+
+  \-
+
+  Indeed, in $2006$, \textit{Hans Reiser}'s wife disappeared and \textit{Hans
+  Reiser} was arrested for murder. Although he denied for two years,
+  he finally led the police to his wife body and was jailed for life in
+  $2008$.
+\end{frame}
+
+% 11)
+
+\begin{frame}
+  \frametitle{Summary}
+
+  XXX
+\end{frame}
+
+% vfs
+
+\subsection{VFS}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Introduction}
+
+  Until now, several file systems have been described. Therefore, it is
+  reasonable to think that an operating system could use different
+  file systems, potentially at the same time.
+
+  \-
+
+  Indeed, a partition could use \textit{ext2} while another could use
+  \textit{Reiser 4} for example.
+
+  \-
+
+  How could the operating system make sure that applications work
+  independently of the file system in use?
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  The purpose of a \textit{VFS - Virtual File System} is to allow client
+  applications to access different types of concrete file systems in a uniform
+  way by providing an abstract layer.
+
+  \-
+
+  The first \textit{VFS} mechanism in \textit{UNIX}-like systems was introduced
+  by \textit{Sun Microsystems} in \textit{SunOS} $2.0$ in $1985$.
+
+  \-
+
+  It allowed client applications to transparently access either the local
+  file system or a network storage through \textit{NFS - Network File System}.
+
+  \-
+
+  On \textit{Windows} systems, the same concept is provided under the
+  name \textit{IFS - Installable File System}.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Interface}
+
+  The \textit{VFS} provides an standardized interface composed of
+  \texttt{open()}, \texttt{stat()}, \texttt{chmod()} \etc{}
+
+  \-
+
+  When an operation is performed, given a pathname, the \textit{VFS} kernel
+  layer stats by looking in the \textit{dcache} for a \textit{dentry}, loading
+  \textit{inode} from the disk into \textit{vnode} and a new \textit{dentry}
+  to complete the lookup process if required.
+
+  \-
+
+  To lookup for an \textit{inode}, the \textit{VFS} calls \texttt{lookup()}
+  provided by a file system specific implementation such as \textit{ext2}.
+
+  \-
+
+  Once the \textit{dentry} has been located, performing the operation is quite
+  straightforward since everything is standardized. Thus, the \textit{VFS}
+  can perform \texttt{stat()} by returning the userspace applications the
+  information it needs.
+\end{frame}
+
+% 4)
+
+\begin{frame}
+  \frametitle{Implementations}
+
+  The actual file systems register to the \textit{VFS} at the startup by
+  providing a \texttt{file\_system\_type} structure describing the file
+  system.
+
+  \-
+
+  This structure includes a file system name, a function pointer on a
+  method to read the superblock and some flags.
+
+  \-
+
+  The \texttt{read\_super()} method is responsible for determining if the
+  device contains a file system of the given type.
+
+  \-
+
+  This method returns a \texttt{super\_block} structure that contains
+  information among which is a \texttt{super\_operations} structure that
+  defines the file system implementation interface with function pointers
+  to \texttt{read\_inode()}, \texttt{write\_super}, \texttt{clear\_inode}
+  and so on.
+
+  \-
+
+  Likewise, a \texttt{inode\_operations} and a \texttt{file\_operations} are
+  provided containing function pointers such as \texttt{create()},
+  \texttt{link()}, \texttt{mknode}, \texttt{truncate} but also \texttt{read},
+  \texttt{write}, \texttt{lock} \etc{}
+\end{frame}
+
+% 5)
+
+\begin{frame}
+  \frametitle{FUSE}
+
+  Recently, the same concept was taken to user-land so that file systems
+  can run in user-land.
+
+  \-
+
+  Indeed, system calls are redirected and passed to the user-land through
+  a virtual device acting as a communication channel between the kernel
+  and user-land driver.
+
+  \-
+
+  This technique is very useful for developing file systems as there is
+  no need to restart the kernel after every modification; hence providing the
+  very same advantages as micro-kernels.
+\end{frame}
+
+% 6)
+
+\begin{frame}
+  \frametitle{Conclusion}
+
+  Although the \textit{VFS} may seem very complicated when described in
+  books, it is actually extremely logic and simple.
+
+  \-
+
+  Indeed, the \textit{VFS} does nothing but providing a file system abstraction
+  that every actual file system must match.
+\end{frame}
+
+% ext3
+
+\subsection{ext3}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Introduction}
+
+  Although \textit{ext3} started before \textit{ReiserFS}, around $1998$ and
+  $2001$ for \textit{ReiserFS}, the latter has been accepted by the community
+  as being the most efficient one.
+
+  \-
+
+  However, with the recent troubles surrounding the project including the
+  maintaining discontinuation of \textit{ReiserFS} in favour of
+  \textit{Reiser4}, and the conviction of \textit{Hans Reiser} for murder;
+  users started to migrate to \textit{ext3}.
+\end{frame}
+
+% 2)
+
+\begin{frame}
+  \frametitle{Overview}
+
+  \textit{ext3} is essentially \textit{ext2} with journaling support added on.
+
+  \-
+
+  Note that by being compliant with \textit{ext2}, the developers were able
+  to re-use most of \textit{ext2} code; hence benefiting from its extreme
+  time-tested stability though less efficient in terms of speed.
+
+  \-
+
+  Besides, \textit{ext3} introduces a few improvements while remaining
+  compliant with \textit{ext2}.
+\end{frame}
+
+% 3)
+
+\begin{frame}
+  \frametitle{Improvements}
+
+  Among the improvements can be noted the possibility to resize a file system
+  while being in use but also a more efficient directory management.
+
+  \-
+
+  Indeed, in \textit{ext2}, directory entries must be explored one after the
+  other in order to locate an element, leading to a $O(n)$ lookup complexity
+  time.
+
+  \-
+
+  \textbf{HTree} indexing was introduced in \textit{ext3} with respect to
+  \textit{ext2} directory format. \textit{HTree}s are specializing
+  \textit{B-tree}s with $32-bit$ keys and constant depth, one or two levels.
+  Additionally, a tree key does not point to directory entry but to a range
+  of entries stored in a data block.
+
+  \-
+
+  Thus, although this scheme is less efficient than other, it lies in the
+  \textit{ext} philosophy which is to rely on very simple and robust data
+  structures.
+\end{frame}
+
+% 4)
+
+\begin{frame}
+  \frametitle{Summary}
+
+  Although major improvements were brought to \textit{ext3}, the backward
+  compatibility still limits the file system that does not provide advanced
+  features such as:
+
+  \begin{itemize}
+    \item
+      Dyanmic \textit{inode} allocation;
+    \item
+      Tail packing;
+    \item
+      XXX      
+  \end{itemize}
+\end{frame}
+
+
+XXX
+ o ext3/4
+ o NTFS
+  - advanced data structures (compared to fat)
+  - reliability(journaling)
+  - ACLs
+  - sparse files
+  - compression
+  - hard/symbolic links
+  - encryption
+ o JFS
+  - from IBM
+  - 64-bit
+  - journaling
+  - b+tree
+  - dynamic inode allocation
+  - compression
+ o XFS
+  - quite similar to JFS
+ o ZFS
+  - from Sun
+  - 128-bit
+  - storage pools
+  - copy-on-write transactional model
+  - etc.
+
+o Access Control
+ - reference to the Security lecture
+ o Unix permissions
+ o ACL
+ o Advanced modeles?
+
+o Advanced Features
+ o Union mounts
+ o Versioning
+   - Elephant(research)
+ o LVM - Logical Volume Manager
+
+%
+% conclusion
+%
+
+\section{Conclusion}
+
+% 1)
+
+\begin{frame}
+  \frametitle{Conclusion}
+
+  XXX
+\end{frame}
+
+o Conclusion
+ o Rethinking the file abstraction -> naming service + object oriented
+   - Spring Name Service
+
+%
+% bibliography
+%
+
+\begin{frame}
+  \frametitle{Bibliography}
+
+  \bibliographystyle{amsplain}
+  \bibliography{\path/bibliography/bibliography}
+\end{frame}
+
+\end{document}
+
+XXX algo d'allocation: first fit, next fit, last fit, best fit, worst fit
+XXX partitions
+
+References:
+http://arstechnica.com/hardware/news/2008/03/past-present-future-file-systems.ars/5
+http://en.wikipedia.org/wiki/Ext3
+http://images.google.com/imgres?imgurl=http://linuxgazette.net/issue55/misc/florido/sparse.gif&imgrefurl=http://linuxgazette.net/issue55/florido.html&usg=__X-TT-b2_6zcw4Q-uLN_mQznAe4o=&h=262&w=384&sz=16&hl=en&start=4&sig2=nM_9kG5FaNAh59W9bsqq8w&tbnid=LIiZhIOGQ7d0PM:&tbnh=84&tbnw=123&prev=/images%3Fq%3Dreiser%2Bfs%2Binternals%26gbv%3D2%26hl%3Den%26sa%3DG&ei=1ETsSfHsOYGUjAeChon3Aw
+http://www.redhat.com/magazine/009jul05/features/lvm2/figs/internal.gif
+http://en.wikipedia.org/wiki/Ext4
+http://en.wikipedia.org/wiki/Cylinder-head-sector
+http://en.wikipedia.org/wiki/NTFS

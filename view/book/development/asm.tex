@@ -1,0 +1,155 @@
+%
+% ---------- header -----------------------------------------------------------
+%
+% project       kaneton
+%
+% license       kaneton
+%
+% file          /home/mycure/kaneton/view/book/development/asm.tex
+%
+% created       julien quintard   [sat jun  2 11:08:30 2007]
+% updated       julien quintard   [tue may 20 17:03:06 2008]
+%
+
+%
+% ---------- asm --------------------------------------------------------------
+%
+
+\section{Assembly}
+\label{section:assembly}
+
+The \name{Assembly} language is used in kaneton to perform tasks which
+cannot be done in \name{C}. Therefore, the amount of \name{Assembly}
+code is relatively small compared to the \name{C} one.
+
+%
+% inline assembly
+%
+
+\subsection{Inline Assembly}
+
+First of all, inline \name{Assembly} is recommended as it avoids multiple
+files and calls to \name{Assembly} routines.
+
+Inline \name{Assembly} code must be composed of lines with single
+instructions. Lines must be ended by a newline character \code{$\backslash$n}
+and aligned to make the code readable even when nested in the body of a macro
+or macro function.
+
+\begin{verbatim}
+  #define EXCEPTION_PREHANDLER_CODE(nr)                                 \
+    asm(`.globl prehandler_exception' #nr `            \n'              \
+        `prehandler_exception' #nr `:                  \n'              \
+        SAVE_CONTEXT()                                                  \
+        `iret                                          ')
+\end{verbatim}
+
+Note that rules implied by the \name{C} language must be respected when
+dealing with inline \name{Assembly} as these pieces of code are integrated
+in \name{C} functions.
+
+%
+% naming
+%
+
+\subsection{Naming}
+
+Bunches of coherent routines must be preceded by a comment, starting with
+the name of the routine in upper case letters, and followed by a description
+of the routines, in lower-case letters.
+
+%
+% layout
+%
+
+\subsection{Layout}
+
+An \name{Assembly} file must be composed of sections:
+
+\begin{itemize}
+  \item
+    \term{header}: this section contains the file header which provides
+    information on the file edition: creation, last update \etc{}
+  \item
+    \term{information}: this section describes what the file is intended
+    to do or provide.
+  \item
+    \term{routines}: this section contains the \name{Assembly} routines.
+  \item
+    \term{data}: this section contains the data definitions.
+\end{itemize}
+
+Below is an example:
+
+\begin{verbatim}
+  ;
+  ; ---------- information ----------------------------------------------------
+  ;
+  ; this is a example, no additional information is required.
+  ;
+
+  ;
+  ; ---------- routines -------------------------------------------------------
+  ;
+
+  ;
+  ; PRINT STRING
+  ;
+  ; these routines print a string.
+  ;
+
+  print_string:
+          mov ah, 0x0e            ; the function to call with int 0x10
+          mov bx, 0x07            ; the console attributes
+
+  print_string_loop:
+          lodsb                   ; load a character from esi into al
+          cmp al, 0               ; is the string finished?
+          je print_string_done    ; if true jump to the end
+
+          int 0x10                ; ask the BIOS to perform the task
+
+          jmp print_string        ; loop for the next character
+
+  print_string_done:
+          ret                     ; return 'cause the string is now displayed
+
+  ;
+  ; MAIN
+  ;
+  ; the main routine.
+  ;
+
+  main:
+          mov [bootdrive], dl     ; save the bootdrive identifier
+          xor ax, ax              ; initialize ax
+          mov ds, ax              ; initialize ds
+
+          cli
+          mov ss, ax              ; initialize ss
+          mov sp, 0xffff          ; initialize the stack pointer
+          sti
+
+          mov si, newline
+          call print_string
+
+          mov si, rmode_message
+          call print_string
+
+          call floppy_read        ; read the ELF from the floppy
+
+          call pmode_enable       ; enable the protected mode
+
+                                  ; once the protected mode is enabled
+                                  ; the function pmode_main will be launched
+
+  ;
+  ; ---------- data -----------------------------------------------------------
+  ;
+
+  newline         db      10, 0
+
+  rmode_message   db      '[+] real mode', 13, 10, 0
+
+  bootdrive       db      0
+\end{verbatim}
